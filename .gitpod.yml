@@ -1,0 +1,20 @@
+image:
+  file: .gitpod.Dockerfile
+
+ports:
+  - port: 8080
+    onOpen: open-browser
+
+tasks:
+  # manage is a [scripts] at Pipfile
+  - init: 
+      pipenv install &&
+      pipenv run manage migrate &&
+      pipenv run manage createsuperuser --email a@a.com --no-input
+    command: 
+      pipenv run manage runserver 0.0.0.0:8080
+
+github:
+  prebuilds:
+    # enable for the master/default branch (defaults to true)
+    master: true

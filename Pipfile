@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+jupyter = "*"
 
 [packages]
 django = "*"
@@ -17,9 +18,7 @@ python_version = "3.8"
 [scripts]
 manage = "python /workspace/ecommerce/manage.py"
 plus = "python /workspace/ecommerce/manage.py shell_plus"
-
 server = "python /workspace/ecommerce/manage.py runserver"
 makemi = "python /workspace/ecommerce/manage.py makemigrations"
 migrate = "python /workspace/ecommerce/manage.py migrate"
-
 test = "python /workspace/ecommerce/manage.py test"

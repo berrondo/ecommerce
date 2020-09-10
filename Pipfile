@@ -9,13 +9,17 @@ verify_ssl = true
 django = "*"
 python-decouple = "*"
 dj-database-url = "*"
+django-extensions = "*"
 
 [requires]
 python_version = "3.8"
 
 [scripts]
 manage = "python /workspace/ecommerce/manage.py"
+plus = "python /workspace/ecommerce/manage.py shell_plus"
+
 server = "python /workspace/ecommerce/manage.py runserver"
 makemi = "python /workspace/ecommerce/manage.py makemigrations"
 migrate = "python /workspace/ecommerce/manage.py migrate"
+
 test = "python /workspace/ecommerce/manage.py test"

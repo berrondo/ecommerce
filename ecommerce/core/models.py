@@ -20,8 +20,11 @@ class Costumer(User):
 
 
 class Cart(models.Model):
-    user = models.OneToOneField('Costumer', on_delete=models.CASCADE)
-    products = models.ManyToManyField('Product', through='Product_Cart', blank=True)
+    user = models.OneToOneField('Costumer', related_name='from_user', on_delete=models.CASCADE)
+    contents = models.ManyToManyField('Product', through='Product_Cart', blank=True)
+
+    def add_product(self, product, quantity=1):
+        Product_Cart.objects.create(cart=self, product=product, quantity=quantity)
 
     class Meta:
         verbose_name = 'carrinho'

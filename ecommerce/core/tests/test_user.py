@@ -32,12 +32,15 @@ class TestUser(TestCase):
 
     def test_a_costumer_can_add_a_product_to_his_cart(self):
         self.costumer.cart.add_product(product=self.product, quantity=1)
-        self.assertEqual(self.costumer.cart.contents.first().name, 'Abacate')
-        # self.assertEqual(self.costumer.cart.contents.first().quantity, 1)
+        self.assertEqual(self.costumer.cart.content.first().name, 'Abacate')
+        # self.assertEqual(self.costumer.cart.content.first().quantity, 1)
 
     # def test_a_costumer_can_take_change_the_quantity_of_a_product_already_in_his_cart(self):
     #     self.costumer.cart.add_product(product=self.product, quantity=1)
-    #     self.assertEqual(self.costumer.cart.contents.first().quantity, 1)
+    #     self.assertEqual(self.costumer.cart.content.first().quantity, 1)
 
-    #     self.costumer.cart.contents('Abacate').quantity += 1
-    #     self.assertEqual(self.costumer.cart.contents.first().quantity, 2)
+    #     self.costumer.cart.content('Abacate').quantity += 1
+    #     self.assertEqual(self.costumer.cart.content.first().quantity, 2)
+
+    def test_costumer_can_not_include_a_new_product(self):
+        ...

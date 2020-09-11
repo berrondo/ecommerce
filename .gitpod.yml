@@ -3,7 +3,7 @@ image:
 
 ports:
   - port: 8080
-    onOpen: open-browser
+    # onOpen: open-browser
 
 tasks:
   # manage is a [scripts] at Pipfile
@@ -13,6 +13,11 @@ tasks:
       pipenv run manage createsuperuser --email a@a.com --no-input
     command: 
       pipenv run manage runserver 0.0.0.0:8080
+    
+vscode:
+  extensions:
+    # SQLite:
+    - alexcvzz.vscode-sqlite@0.9.0:zd8ThD/lTpdSq0fXjP1QIw==
 
 github:
   prebuilds:

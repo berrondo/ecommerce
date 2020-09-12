@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Cart, Product, ProductCart
+from .models import Order, Product, ProductOrder
 
 
 class PickInline(admin.TabularInline):
-    model = ProductCart
+    model = ProductOrder
     extra = 1
 
 class ProductModelAdmin(admin.ModelAdmin):
@@ -14,6 +14,6 @@ class CartModelAdmin(admin.ModelAdmin):
     inlines = (PickInline,)
 
 
-admin.site.register(Cart, CartModelAdmin)
+admin.site.register(Order, CartModelAdmin)
 admin.site.register(Product, ProductModelAdmin)
-admin.site.register(ProductCart)
+admin.site.register(ProductOrder)

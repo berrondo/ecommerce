@@ -1,17 +1,16 @@
 from django.test import TestCase
 # from unittest import TestCase
 from django.contrib.auth.models import Group
-from ..models import Customer, Order, Product
+from ..models import User, Order, Product
 
 
-class TestUser(TestCase):
+class TestCustomer(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.customer = Customer.objects.create_user(
+        cls.customer = User.objects.create_customer(
             username='bob',
-            email='b@b.com',
             password='12345'
         )
         # login = self.client.login(username='bob', password='12345')
@@ -32,7 +31,7 @@ class TestUser(TestCase):
         return self.customer.orders.first().picks.first()
 
     def test_create(self):
-        self.assertTrue(Customer.objects.exists())
+        self.assertTrue(User.objects.exists())
 
     def test_costumer_must_be_at_the_costumers_group(self):
         group = self.customer.groups.first()
@@ -76,7 +75,7 @@ class TestUser(TestCase):
         self.order_1().remove_product(product=self.avocado)
         self.assertFalse(self.order_1().picks.exists())
 
-    def test_costumer_checkout_generates_an_order(self):
+    def test_costumer_checkout_finalizes_the_order(self):
         self.order_1().add_product(product=self.avocado, quantity=2)
         self.order_1().add_product(product=self.banana, quantity=3)
         self.order_1().checkout()

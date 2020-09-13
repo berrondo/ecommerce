@@ -4,24 +4,32 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 
-class CustomerUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+class UserManager(BaseUserManager):
+    def create_user(self, password, **extra_fields):
+        user = self.model(**extra_fields)
         user.set_password(password)
+        user.staff = True
         user.save()
+        return user
 
+    def create_customer(self, password, **extra_fields):
+        user = self.create_user(password, **extra_fields)
         user.groups.add(Group.objects.create(name='customers'))
         user.orders.add(Order.objects.create(customer=user))
         return user
 
+    def create_manager(self, password, **extra_fields):
+        user = self.create_user(password, **extra_fields)
+        user.groups.add(Group.objects.create(name='managers'))
+        return user
 
-class Customer(User):
-    objects = CustomerUserManager()
+
+class User(User):
+    objects = UserManager()
 
 
 class Order(models.Model):
-    customer = models.ForeignKey('Customer', related_name='orders', on_delete=models.CASCADE)
+    customer = models.ForeignKey('User', related_name='orders', on_delete=models.CASCADE)
     content = models.ManyToManyField('Product', through='ProductOrder', blank=True)
     
     class OrderStatus(models.TextChoices):
@@ -51,9 +59,9 @@ class Order(models.Model):
 
     def checkout(self):
         self.status = self.OrderStatus.TO_BE_SHIPPED
-        for p in self.content.all():
-            self.content.filter(order=self, in_cart=p).price = p.price
-            self.content(p).save()
+        # for p in self.content.all():
+        #     self.content.filter(order=self, in_cart=p).price = p.price
+        #     self.content(p).save()
         self.save()
         return self
 

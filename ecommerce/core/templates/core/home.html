@@ -1,0 +1,31 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+  Hi {{ user.get_username }}!
+  <p><a href="{% url 'logout' %}">Log Out</a></p>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">Log In</a>
+{% endif %}
+
+<p><a href="{% url 'login' %}">login</a>/logout</p>
+<hr />
+<p>Ol&aacute;, {{ user.get_username }}</p>
+<p>seus pedidos</p>
+<p>produtos:</p>
+<ol>
+{% for product in products %}
+<li>{{ product.name }}, $ {{ product.price }} [ 1 ] [+][-] [<a href="">comprar</a>]</li>
+{% endfor %}
+</ol>
+<hr />
+<p>Ol&aacute;, manager</p>
+<p>cadastrar produtos | todos os pedidos</p>
+
+
+{% endblock %}

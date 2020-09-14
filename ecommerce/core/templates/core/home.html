@@ -5,18 +5,25 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+
 {% if user.is_authenticated %}
-  Hi {{ user.get_username }}!
-  <p><a href="{% url 'logout' %}">Log Out</a></p>
+  Ol&aacute;, {{ user.get_username }}! <a href="{% url 'logout' %}">logout</a>
 {% else %}
-  <p>You are not logged in</p>
-  <a href="{% url 'login' %}">Log In</a>
+  <p>Voc&ecirc; presisa fazer <a href="{% url 'login' %}">login</a></p>
 {% endif %}
 
-<p><a href="{% url 'login' %}">login</a>/logout</p>
 <hr />
-<p>Ol&aacute;, {{ user.get_username }}</p>
 <p>seus pedidos</p>
+<ol>
+{% for order in orders %}
+    <p>{{ order }} ({{ order.satus }})</p>
+    {% for pick in order.picks.all %}
+    <li>{{ pick.product.name }}, $ {{ pick.product.price }} [ {{pick.quantity}} ] [+][-]</li>
+    {% endfor %}
+{% endfor %}
+<p><a href="">fechar pedido</a></p>
+</ol>
+
 <p>produtos:</p>
 <ol>
 {% for product in products %}

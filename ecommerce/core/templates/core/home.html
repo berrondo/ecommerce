@@ -27,7 +27,7 @@
 <p>produtos:</p>
 <ol>
 {% for product in products %}
-<li>{{ product.name }}, $ {{ product.price }} [ 1 ] [+][-] [<a href="">comprar</a>]</li>
+<li>{{ product.name }}, $ {{ product.price }} [ 1 ] [+][-] [<a href="{% url 'comprar' id_pedido=2 id_produto=product.id qtd=7 %}">comprar</a>]</li>
 {% endfor %}
 </ol>
 <hr />

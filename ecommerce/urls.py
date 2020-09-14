@@ -13,6 +13,8 @@ router.register(r'orders', views.OrderViewSet)
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('pedidos/<int:id_pedido>/produtos/<int:id_produto>/quantidade/<int:qtd>', 
+         views.Comprar.as_view(), name='comprar'),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/', include(router.urls)),

@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.views import generic
+from django.http import HttpResponse
 from rest_framework import viewsets
 from .models import Product, Order, ProductOrder
 from .serializers import OrderSerializer, ProductSerializer, ProductOrderSerializer
@@ -12,6 +14,11 @@ def home(request):
     products = Product.objects.all()
     orders = list(Order.objects.filter(customer__username=username).all())
     return render(request, 'core/home.html', {'products': products, 'orders': orders})
+
+
+class Comprar(generic.View):
+    def get(self, request, **kwargs):
+        return HttpResponse(str(kwargs))
 
 
 class OrderViewSet(viewsets.ModelViewSet):

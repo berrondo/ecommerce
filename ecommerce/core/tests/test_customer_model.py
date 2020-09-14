@@ -81,3 +81,6 @@ class TestCustomer(TestCase):
         self.order_1().checkout()
 
         self.assertEqual(self.order_1().status, 'TO_BE_SHIPPED')
+
+    def test_costumer_should_see_his_orders(self):
+        ...

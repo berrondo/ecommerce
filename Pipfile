@@ -11,6 +11,7 @@ django = "*"
 python-decouple = "*"
 dj-database-url = "*"
 django-extensions = "*"
+djangorestframework = "*"
 
 [requires]
 python_version = "3.8"

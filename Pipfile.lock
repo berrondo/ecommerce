@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "140884cf5c6c1bc774e1e307d7796d886e84edb5c512e7eb9b2a96ab204692b0"
+            "sha256": "48a9a35872e093897dc5da06b4848cea1ffd8be876a59e6a11e37a1ab36ea3e2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -47,6 +47,14 @@
             ],
             "index": "pypi",
             "version": "==3.0.8"
+        },
+        "djangorestframework": {
+            "hashes": [
+                "sha256:6dd02d5a4bd2516fb93f80360673bf540c3b6641fec8766b1da2870a5aa00b32",
+                "sha256:8b1ac62c581dbc5799b03e535854b92fc4053ecfe74bad3f9c05782063d4196b"
+            ],
+            "index": "pypi",
+            "version": "==3.11.1"
         },
         "python-decouple": {
             "hashes": [
@@ -329,11 +337,11 @@
         },
         "nbconvert": {
             "hashes": [
-                "sha256:970122eaf3a3ddcfe4e03514b219df4be4af09e70c748faf6ba96f51a25fd09b",
-                "sha256:db94117fbac29153834447e31b30cda337d4450e46e0bdb1a36eafbbf4435156"
+                "sha256:4cb5c66d04737a42076536fa64fa951e97cddbf4c517c418591314a3d14013dc",
+                "sha256:e3994dbcb8029c91425d945797135573b9efbd52278908685c7ae81f84280a2e"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==6.0.1"
+            "version": "==6.0.2"
         },
         "nbformat": {
             "hashes": [
@@ -429,11 +437,11 @@
         },
         "pygments": {
             "hashes": [
-                "sha256:647344a061c249a3b74e230c739f434d7ea4d8b1d5f3721bc0f3558049b38f44",
-                "sha256:ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324"
+                "sha256:2594e8fdb06fef91552f86f4fd3a244d148ab24b66042036e64f29a291515048",
+                "sha256:2df50d16b45b977217e02cba6c8422aaddb859f3d0570a88e09b00eafae89c6e"
             ],
             "markers": "python_version >= '3.5'",
-            "version": "==2.6.1"
+            "version": "==2.7.0"
         },
         "pyparsing": {
             "hashes": [
@@ -445,9 +453,10 @@
         },
         "pyrsistent": {
             "hashes": [
-                "sha256:28669905fe725965daa16184933676547c5bb40a5153055a8dee2a4bd7933ad3"
+                "sha256:2e636185d9eb976a18a8a8e96efce62f2905fea90041958d8cc2a189756ebf3e"
             ],
-            "version": "==0.16.0"
+            "markers": "python_version >= '3.5'",
+            "version": "==0.17.3"
         },
         "python-dateutil": {
             "hashes": [

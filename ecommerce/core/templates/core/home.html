@@ -18,7 +18,7 @@
 {% for order in orders %}
     <p>{{ order }} ({{ order.satus }})</p>
     {% for pick in order.picks.all %}
-    <li>{{ pick.product.name }}, $ {{ pick.product.price }} [ {{pick.quantity}} ] [+][-]</li>
+    <li>{{ pick.product.name }}, $ {{ pick.product.price }} [ {{pick.quantity}} ] [+][-] [<a href="">excluir</a>]</li>
     {% endfor %}
 {% endfor %}
 <p><a href="">fechar pedido</a></p>

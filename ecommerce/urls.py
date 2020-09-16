@@ -7,14 +7,13 @@ from .core import views
 
 router = routers.DefaultRouter()
 router.register(r'orders', views.OrderViewSet)
-# router.register(r'products', views.ProductViewSet)
+router.register(r'products', views.ProductViewSet)
 # router.register(r'productorders', views.ProductOrderViewSet)
 
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('pedidos/<int:id_pedido>/produtos/<int:id_produto>/quantidade/<int:qtd>', 
-         views.Comprar.as_view(), name='comprar'),
+    path('pedidos/produtos/', views.Compra.as_view(), name='compra'),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/', include(router.urls)),

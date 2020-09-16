@@ -1,4 +1,3 @@
-<!-- templates/home.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -18,18 +17,31 @@
 {% for order in orders %}
     <p>{{ order }} ({{ order.satus }})</p>
     {% for pick in order.picks.all %}
-    <li>{{ pick.product.name }}, $ {{ pick.product.price }} [ {{pick.quantity}} ] [+][-] [<a href="">excluir</a>]</li>
+    <form method="post" action="{% url 'compra' %}">{% csrf_token %}
+        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" min="0" name="qtd" value="{{ pick.quantity }}"     style="width:50px">
+            <input type="hidden" value="DELETE" name="_method"> 
+            <input type="hidden" value="{{ pick.id }}" name="pick_id"> 
+            <input type="submit" value="alterar"> ou <input type="submit" value="excluir">
+        </li>
+    </form>
     {% endfor %}
 {% endfor %}
 <p><a href="">fechar pedido</a></p>
 </ol>
 
 <p>produtos:</p>
-<ol>
-{% for product in products %}
-<li>{{ product.name }}, $ {{ product.price }} [ 1 ] [+][-] [<a href="{% url 'comprar' id_pedido=2 id_produto=product.id qtd=7 %}">comprar</a>]</li>
-{% endfor %}
-</ol>
+    <ol>
+    {% for product in products %}
+        <form method="post" action="{% url 'compra' %}">{% csrf_token %}
+            <li>{{ product.name }}, $ {{ product.price }} <input type="number" min="1" maxlength="4" name="qtd" value="1"     style="width:50px">
+                <input type="hidden" value="{{ user.id }}" name="user_id"> 
+                <input type="hidden" value="{{ order_id }}" name="order_id"> 
+                <input type="hidden" value="{{ product.id }}" name="product_id">
+                <input type="submit" value="comprar">
+            </li>
+        </form>
+    {% endfor %}
+    </ol>
 <hr />
 <p>Ol&aacute;, manager</p>
 <p>cadastrar produtos | todos os pedidos</p>

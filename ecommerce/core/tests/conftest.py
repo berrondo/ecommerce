@@ -1,0 +1,28 @@
+import pytest
+
+from ..models import User, Product
+
+
+@pytest.fixture(autouse=True)
+def enable_db_access(db):
+    pass
+
+
+@pytest.fixture
+def a_customer():
+    return User.objects.create_customer(username='bob', password='12345')
+
+
+@pytest.fixture
+def a_manager():
+    return User.objects.create_manager(username='ann', password='54321')
+
+
+@pytest.fixture
+def avocado():
+    return Product.objects.create(name='Abacate', price=1.0)  
+
+
+@pytest.fixture
+def banana():
+    return Product.objects.create(name='Banana', price=2.0)  

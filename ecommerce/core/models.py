@@ -45,8 +45,11 @@ class Order(models.Model):
     )
 
     def add_product(self, product, quantity=1):
+        if quantity == 0:
+            return self.remove_product(product)
+            
         pick, created = ProductOrder.objects.get_or_create(order=self, product=product)
-        pick.quantity += quantity
+        pick.quantity = quantity
         pick.save()
         return pick
 

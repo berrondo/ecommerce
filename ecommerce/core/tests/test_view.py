@@ -50,3 +50,21 @@ class TestViewIndex:
         }
         response = client.post(reverse('index'), data=a_pick)
         assert response.status_code == 302
+
+    def test_patch(self, client, a_customer, avocado):
+        an_order = {
+                # "user_id": a_customer.id, 
+                "order_id": a_customer.orders.first().id, 
+                "product_id": avocado.id,
+                "qtd": 1,
+        }
+        response = client.post(reverse('index'), data=an_order)
+        assert response.status_code == 302
+
+
+        a_pick = {
+                "pick_id": a_customer.orders.first().picks.first().id,
+                "qtd": 7,
+                "_method": 'PATCH',
+        }
+        response = client.post(reverse('index'), data=a_pick)

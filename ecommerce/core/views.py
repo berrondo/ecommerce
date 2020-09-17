@@ -24,8 +24,12 @@ class Shop(generic.View):
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
+        
         if compra.get('_method') == 'DELETE':
             return self.delete(request, **kwargs)
+
+        if compra.get('_method') == 'PATCH':
+            return self.patch(request, **kwargs)
 
         ProductOrder.objects.create(
             order=Order.objects.get(id=compra['order_id']),
@@ -37,6 +41,10 @@ class Shop(generic.View):
     def delete(self, request, **kwargs):
         compra = request.POST.dict()
         ProductOrder.objects.get(id=compra['pick_id']).delete()
+        return redirect('index')
+
+    def patch(self, request, **kwargs):
+        compra = request.POST.dict()
         return redirect('index')
 
 

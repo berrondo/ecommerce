@@ -12,8 +12,8 @@ router.register(r'products', views.ProductViewSet)
 
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('pedidos/produtos/', views.Compra.as_view(), name='compra'),
+    path('', views.Shop.as_view(), name='index'),
+    # path('shop/', views.Shop.as_view(), name='shop'),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/', include(router.urls)),

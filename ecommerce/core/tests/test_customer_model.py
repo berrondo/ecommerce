@@ -1,7 +1,7 @@
 from ..models import User
 
 
-class TestCustomer:
+class TestCustomerAndOrder:
     def test_a_customer_is_created_in_the_correct_group_with_an_opened_order(self, a_customer):
         assert User.objects.exists()
         assert a_customer.groups.first().name == 'customers'

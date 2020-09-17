@@ -3,25 +3,25 @@ from django.views import generic
 from django.http import HttpResponse
 from rest_framework import viewsets
 from .models import Product, Order, ProductOrder
-from .serializers import OrderSerializer, ProductSerializer, ProductOrderSerializer
+from .serializers import OrderSerializer, ProductSerializer
 
 
-def home(request):
-    username = None
-    if request.user.is_authenticated:
-        username = request.user.username
-    
-    products = Product.objects.all()
-    orders = list(Order.objects.filter(customer__username=username).all())
-    order_id = orders[0].id
-    return render(request, 'core/home.html', {
-        'products': products, 
-        'orders': orders,
-        'order_id': order_id,
-    })
+class Shop(generic.View):
+    def get(self, request, **kwargs):
+        username = None
+        if request.user.is_authenticated:
+            username = request.user.username
+        
+        products = Product.objects.all()
+        orders = list(Order.objects.filter(customer__username=username).all())
+        try: order_id = orders[0].id
+        except IndexError: order_id = 0
+        return render(request, 'core/home.html', {
+            'products': products, 
+            'orders': orders,
+            'order_id': order_id,
+        })
 
-
-class Compra(generic.View):
     def post(self, request, **kwargs):
         compra = request.POST.dict()
         if compra.get('_method') == 'DELETE':
@@ -32,12 +32,12 @@ class Compra(generic.View):
             product=Product.objects.get(id=compra['product_id']),
             quantity=compra['qtd'],
         )
-        return redirect('home')
+        return redirect('index')
 
     def delete(self, request, **kwargs):
         compra = request.POST.dict()
         ProductOrder.objects.get(id=compra['pick_id']).delete()
-        return redirect('home')
+        return redirect('index')
 
 
 class OrderViewSet(viewsets.ModelViewSet):

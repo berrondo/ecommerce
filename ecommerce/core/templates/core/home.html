@@ -17,10 +17,10 @@
 {% for order in orders %}
     <p>{{ order }} ({{ order.satus }})</p>
     {% for pick in order.picks.all %}
-    <form method="post" action="{% url 'compra' %}">{% csrf_token %}
-        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" min="0" name="qtd" value="{{ pick.quantity }}"     style="width:50px">
-            <input type="hidden" value="DELETE" name="_method"> 
-            <input type="hidden" value="{{ pick.id }}" name="pick_id"> 
+    <form method="post" action="{% url 'index' %}">{% csrf_token %}
+        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="qtd" value="{{ pick.quantity }}" min="0" style="width:50px">
+            <input type="hidden" name="_method" value="DELETE"> 
+            <input type="hidden" name="pick_id" value="{{ pick.id }}"> 
             <input type="submit" value="alterar"> ou <input type="submit" value="excluir">
         </li>
     </form>
@@ -32,11 +32,11 @@
 <p>produtos:</p>
     <ol>
     {% for product in products %}
-        <form method="post" action="{% url 'compra' %}">{% csrf_token %}
-            <li>{{ product.name }}, $ {{ product.price }} <input type="number" min="1" maxlength="4" name="qtd" value="1"     style="width:50px">
-                <input type="hidden" value="{{ user.id }}" name="user_id"> 
-                <input type="hidden" value="{{ order_id }}" name="order_id"> 
-                <input type="hidden" value="{{ product.id }}" name="product_id">
+        <form method="post" action="{% url 'index' %}">{% csrf_token %}
+            <li>{{ product.name }}, $ {{ product.price }} <input type="number" name="qtd" value="1" min="1" style="width:50px">
+                <input type="hidden" name="user_id" value="{{ user.id }}"> 
+                <input type="hidden" name="order_id" value="{{ order_id }}"> 
+                <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="submit" value="comprar">
             </li>
         </form>

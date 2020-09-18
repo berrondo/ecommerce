@@ -25,26 +25,27 @@ class Shop(generic.View):
     def post(self, request, **kwargs):
         compra = request.POST.dict()
         
-        if compra.get('_method') == 'DELETE':
-            return self.delete(request, **kwargs)
+        if compra.get('todo') == 'excluir':
+            return self._delete(compra)
 
-        if compra.get('_method') == 'PATCH':
-            return self.patch(request, **kwargs)
+        if compra.get('todo') == 'alterar':
+            return self._patch(compra)
 
         ProductOrder.objects.create(
             order=Order.objects.get(id=compra['order_id']),
             product=Product.objects.get(id=compra['product_id']),
-            quantity=compra['qtd'],
+            quantity=compra['quantity'],
         )
         return redirect('index')
 
-    def delete(self, request, **kwargs):
-        compra = request.POST.dict()
+    def _delete(self, compra):
         ProductOrder.objects.get(id=compra['pick_id']).delete()
         return redirect('index')
 
-    def patch(self, request, **kwargs):
-        compra = request.POST.dict()
+    def _patch(self, compra):
+        pick = ProductOrder.objects.get(id=compra['pick_id'])
+        pick.quantity = compra['quantity']
+        pick.save()
         return redirect('index')
 
 

@@ -18,10 +18,9 @@
     <p>{{ order }} ({{ order.satus }})</p>
     {% for pick in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
-        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="qtd" value="{{ pick.quantity }}" min="0" style="width:50px">
-            <input type="hidden" name="_method" value="DELETE"> 
+        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="quantity" value="{{ pick.quantity }}" min="0" style="width:50px">
             <input type="hidden" name="pick_id" value="{{ pick.id }}"> 
-            <input type="submit" value="alterar"> ou <input type="submit" value="excluir">
+            <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
     {% endfor %}
@@ -33,11 +32,11 @@
     <ol>
     {% for product in products %}
         <form method="post" action="{% url 'index' %}">{% csrf_token %}
-            <li>{{ product.name }}, $ {{ product.price }} <input type="number" name="qtd" value="1" min="1" style="width:50px">
+            <li>{{ product.name }}, $ {{ product.price }} <input type="number" name="quantity" value="1" min="1" style="width:50px">
                 <input type="hidden" name="user_id" value="{{ user.id }}"> 
                 <input type="hidden" name="order_id" value="{{ order_id }}"> 
                 <input type="hidden" name="product_id" value="{{ product.id }}">
-                <input type="submit" value="comprar">
+                <input type="submit" name="todo" value="comprar">
             </li>
         </form>
     {% endfor %}

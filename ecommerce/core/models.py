@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 
 
 class UserManager(BaseUserManager):
@@ -23,6 +24,11 @@ class UserManager(BaseUserManager):
         user.groups.add(Group.objects.create(name='managers'))
         return user
 
+    def get_by_natural_key(self, username):
+        user = super().get_by_natural_key(username)
+        if not user.orders.filter(status=Order.OrderStatus.OPENED).all():
+            user.orders.add(Order.objects.create(customer=user))
+        return user
 
 class User(User):
     objects = UserManager()
@@ -45,6 +51,8 @@ class Order(models.Model):
     )
 
     def add_product(self, product, quantity=1):
+        self._must_be_an_opened_order()
+
         if quantity == 0:
             return self.remove_product(product)
             
@@ -54,6 +62,8 @@ class Order(models.Model):
         return pick
 
     def remove_product(self, product):
+        self._must_be_an_opened_order()
+
         try:
             pick = ProductOrder.objects.get(product=product)
             pick.delete()
@@ -61,12 +71,28 @@ class Order(models.Model):
             ...
 
     def checkout(self):
+        self._must_be_an_opened_order()
+
         self.status = self.OrderStatus.TO_BE_SHIPPED
         # for p in self.content.all():
         #     self.content.filter(order=self, in_cart=p).price = p.price
         #     self.content(p).save()
         self.save()
+        self._new_opened_order()
         return self
+
+    def _must_be_an_opened_order(self):
+        if self.status != Order.OrderStatus.OPENED:
+            raise ValidationError("Should not alter a not opened order!")
+
+    def delete(self):
+        self._must_be_an_opened_order()
+
+        Order.objects.create(customer=self.customer)
+        super().delete()
+
+    def _new_opened_order(self):
+        return Order.objects.create(customer=self.customer)
 
     class Meta:
         verbose_name = 'pedido'

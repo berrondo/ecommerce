@@ -11,16 +11,17 @@ from .serializers import OrderSerializer, ProductSerializer
 class Shop(generic.View):
     def _context(self, request, msgs=None):
         username = None
+        customer = None
         if request.user.is_authenticated:
             username = request.user.username
-            customer = User.objects.get(username=username)
+            customer = User.objects.get_by_natural_key(username=username)
 
         products = Product.objects.all()
-        orders = list(Order.objects.filter(customer__username=username).all())
-        # orders = list(Order.objects.get_or_create(
-        #     id=customer.id,
-        #     # status=Order.OrderStatus.OPENED,
-        # ))
+        orders = list(Order.objects.filter(
+            customer__username=username,
+            status=Order.OrderStatus.OPENED,
+        ).all())
+
         try: order_id = orders[0].id
         except IndexError: order_id = 0
 

@@ -1,6 +1,5 @@
 
 from django.urls import reverse
-from ..views import Shop
 
 
 class TestViewIndex:
@@ -8,24 +7,15 @@ class TestViewIndex:
         response = client.get(reverse('index'))
         assert response.status_code == 200
 
-    def test_post(self, client, a_customer, avocado):
-        an_order = {
-                # "user_id": a_customer.id, 
-                "order_id": a_customer.orders.first().id, 
-                "product_id": avocado.id,
-                "quantity": 1,
-        }
+    def test_post(self, client, a_customer, an_order):
         response = client.post(reverse('index'), data=an_order)
+
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
-    def test_post_the_same_product_twice(self, client, a_customer, avocado):
-        an_order = {
-                "order_id": a_customer.orders.first().id, 
-                "product_id": avocado.id,
-                "quantity": 1,
-        }
+    def test_post_the_same_product_twice(self, client, a_customer, an_order):
         response = client.post(reverse('index'), data=an_order)
+
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
@@ -34,14 +24,9 @@ class TestViewIndex:
         assert response.status_code == 200
         assert "existe" in str(response.content)
 
-    def test_delete_via_post(self, client, a_customer, avocado):
-        an_order = {
-                # "user_id": a_customer.id, 
-                "order_id": a_customer.orders.first().id, 
-                "product_id": avocado.id,
-                "quantity": 1,
-        }
+    def test_delete_via_post(self, client, a_customer, an_order):
         response = client.post(reverse('index'), data=an_order)
+
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
@@ -53,14 +38,9 @@ class TestViewIndex:
         assert response.status_code == 302
         assert not a_customer.orders.first().picks.exists()
 
-    def test_patch_via_post(self, client, a_customer, avocado):
-        an_order = {
-                # "user_id": a_customer.id, 
-                "order_id": a_customer.orders.first().id, 
-                "product_id": avocado.id,
-                "quantity": 1,
-        }
+    def test_patch_via_post(self, client, a_customer, an_order):
         response = client.post(reverse('index'), data=an_order)
+
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
@@ -73,13 +53,9 @@ class TestViewIndex:
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 7
 
-    def test_patch_via_post_with_quantity_equals_zero_is_equivalent_to_delete(self, client, a_customer, avocado):
-        an_order = {
-                "order_id": a_customer.orders.first().id, 
-                "product_id": avocado.id,
-                "quantity": 1,
-        }
+    def test_patch_via_post_with_quantity_equals_zero_is_equivalent_to_delete(self, client, a_customer, an_order):
         response = client.post(reverse('index'), data=an_order)
+
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 

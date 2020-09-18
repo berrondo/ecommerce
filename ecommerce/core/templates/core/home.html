@@ -11,11 +11,17 @@
   <p>Voc&ecirc; presisa fazer <a href="{% url 'login' %}">login</a></p>
 {% endif %}
 
+{% for msg in msgs %}
+  <p>{{ msg }}</p>
+{% endfor %}
+
 <hr />
-<p>seus pedidos</p>
+{% if orders %}
+  <p>seus pedidos abertos ({{ orders|length }}) <a href="">ver todos os pedidos</a></p>
+{% endif %}
 <ol>
 {% for order in orders %}
-    <p>{{ order }} ({{ order.satus }})</p>
+    <p>{{ order }} ({{ order.get_status_display }})</p>
     {% for pick in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="quantity" value="{{ pick.quantity }}" min="0" style="width:50px">
@@ -24,8 +30,13 @@
         </li>
     </form>
     {% endfor %}
+  <p>
+    <form method="post" action="{% url 'close' %}">{% csrf_token %}
+        <input type="hidden" name="order_id" value="{{ order.id }}"> 
+        <input type="submit" name="todo" value="excluir pedido"> <input type="submit" name="todo" value="fechar pedido">
+    </form>
+  </p>
 {% endfor %}
-<p><a href="">fechar pedido</a></p>
 </ol>
 
 <p>produtos:</p>
@@ -42,8 +53,9 @@
     {% endfor %}
     </ol>
 <hr />
+{% comment %}
 <p>Ol&aacute;, manager</p>
 <p>cadastrar produtos | todos os pedidos</p>
-
+{% endcomment %}
 
 {% endblock %}

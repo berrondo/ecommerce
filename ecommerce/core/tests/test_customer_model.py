@@ -54,6 +54,15 @@ class TestCustomerAndOrder:
 
         assert a_customer.orders.first().status == 'TO_BE_SHIPPED'
 
+    def test_costumer_should_not_alter_a_not_opened_order(self, a_customer, avocado, banana):
+        a_customer.orders.first().add_product(avocado, 3)
+
+        a_customer.orders.first().checkout()
+        assert a_customer.orders.first().status == 'TO_BE_SHIPPED'
+
+        a_customer.orders.first().add_product(avocado, 2)
+        assert a_customer.orders.first().picks.first().quantity == 3
+
         
 
 # from django.test import TestCase

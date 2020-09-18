@@ -30,6 +30,7 @@ class UserManager(BaseUserManager):
             user.orders.add(Order.objects.create(customer=user))
         return user
 
+
 class User(User):
     objects = UserManager()
 

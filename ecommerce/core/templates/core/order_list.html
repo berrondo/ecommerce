@@ -1,0 +1,11 @@
+<p>pedidos</p>
+<ul>
+{% for order in object_list %}
+    <p>{{ order.customer.name }} ({{ order.get_status_display }})</p>
+    {% for item in order.picks.all %}
+        <li>{{ item.quantity }} - {{ item.product.name }} - {{ item.product.price }}</li>
+    {% endfor %}
+{% empty %}
+    <li>nenhum pedido...</li>
+{% endfor %}
+</ul>

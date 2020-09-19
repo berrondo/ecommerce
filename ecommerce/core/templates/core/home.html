@@ -16,7 +16,7 @@
 {% endfor %}
 
 <hr />
-<p>seu pedido <a href="">(ver seu histórico de pedidos)</a></p>
+<p>seu pedido <a href="{% url 'orders' %}">(ver seu histórico de pedidos)</a></p>
 <ol>
 {% for order in orders %}
     <!-- <p>{{ order }} ({{ order.get_status_display }})</p> -->

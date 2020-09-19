@@ -1,8 +1,5 @@
 from django.shortcuts import redirect, render
 from django.views import generic
-from django.http import HttpResponse
-from django.db import transaction
-from django.db.utils import IntegrityError
 from rest_framework import viewsets
 from .models import User, Product, Order, OrderItem
 from .serializers import OrderSerializer, ProductSerializer
@@ -50,16 +47,15 @@ class Shop(generic.View):
         except: order = Order.objects.create
         product = Product.objects.get(id=compra['product_id'])
         quantity = compra['quantity']
-        try:
-            with transaction.atomic():
-                OrderItem.objects.create(
+
+        order_item, created = OrderItem.objects.get_or_create(
                     order=order,
                     product=product,
                     quantity=quantity,
-                )
-                return redirect('index')
-
-        except IntegrityError:
+        )
+        if created:
+            return redirect('index')
+        else:
             return render(
                 request, 
                 'core/home.html', 

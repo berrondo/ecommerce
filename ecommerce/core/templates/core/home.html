@@ -16,12 +16,10 @@
 {% endfor %}
 
 <hr />
-{% if orders %}
-  <p>seus pedidos abertos ({{ orders|length }}) <a href="">ver todos os pedidos</a></p>
-{% endif %}
+<p>seu pedido <a href="">(ver seu histórico de pedidos)</a></p>
 <ol>
 {% for order in orders %}
-    <p>{{ order }} ({{ order.get_status_display }})</p>
+    <!-- <p>{{ order }} ({{ order.get_status_display }})</p> -->
     {% for pick in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="quantity" value="{{ pick.quantity }}" min="0" style="width:50px">

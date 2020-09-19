@@ -73,6 +73,7 @@ class Order(models.Model):
 
     def checkout(self):
         self._must_be_an_opened_order()
+        self._nust_be_an_non_empty_order()
 
         self.status = self.OrderStatus.TO_BE_SHIPPED
         # for p in self.content.all():
@@ -82,12 +83,17 @@ class Order(models.Model):
         self._new_opened_order()
         return self
 
+    def _nust_be_an_non_empty_order(self):
+        if self.content.count() == 0:
+            raise ValidationError("The Order is empty!")
+
     def _must_be_an_opened_order(self):
         if self.status != Order.OrderStatus.OPENED:
             raise ValidationError("Should not alter a not opened order!")
 
     def delete(self):
         self._must_be_an_opened_order()
+        self._nust_be_an_non_empty_order()
 
         Order.objects.create(customer=self.customer)
         super().delete()

@@ -37,7 +37,7 @@ class User(User):
 
 class Order(models.Model):
     customer = models.ForeignKey('User', related_name='orders', on_delete=models.CASCADE)
-    content = models.ManyToManyField('Product', through='ProductOrder', blank=True)
+    content = models.ManyToManyField('Product', through='OrderItem', blank=True)
     
     class OrderStatus(models.TextChoices):
         OPENED = 'OPENED', _('Aberto')
@@ -57,7 +57,7 @@ class Order(models.Model):
         if quantity == 0:
             return self.remove_product(product)
             
-        pick, created = ProductOrder.objects.get_or_create(order=self, product=product)
+        pick, created = OrderItem.objects.get_or_create(order=self, product=product)
         pick.quantity = quantity
         pick.save()
         return pick
@@ -66,9 +66,9 @@ class Order(models.Model):
         self._must_be_an_opened_order()
 
         try:
-            pick = ProductOrder.objects.get(product=product)
+            pick = OrderItem.objects.get(product=product)
             pick.delete()
-        except ProductOrder.DoesNotExist:
+        except OrderItem.DoesNotExist:
             ...
 
     def checkout(self):
@@ -121,7 +121,7 @@ class Product(models.Model):
         return f'{self.name} ({self.price})'
 
 
-class ProductOrder(models.Model):
+class OrderItem(models.Model):
     order = models.ForeignKey('Order', related_name='picks', on_delete=models.CASCADE, verbose_name='pedido')
     product = models.ForeignKey('Product', related_name='in_cart', on_delete=models.CASCADE, verbose_name='produto')
     quantity = models.PositiveIntegerField('quantidade', default=0)

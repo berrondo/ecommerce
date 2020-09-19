@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.db.utils import IntegrityError
 from rest_framework import viewsets
-from .models import User, Product, Order, ProductOrder
+from .models import User, Product, Order, OrderItem
 from .serializers import OrderSerializer, ProductSerializer
 
 
@@ -14,7 +14,8 @@ class Shop(generic.View):
         customer = None
         if request.user.is_authenticated:
             username = request.user.username
-            customer = User.objects.get_by_natural_key(username=username)
+            try: customer = User.objects.get_by_natural_key(username=username)
+            except: ...
 
         products = Product.objects.all()
         orders = list(Order.objects.filter(
@@ -45,12 +46,13 @@ class Shop(generic.View):
         if compra.get('todo') == 'alterar':
             return self._patch(compra)
 
-        order = Order.objects.get(id=compra['order_id'])
+        try: order = Order.objects.get(id=compra['order_id'])
+        except: order = Order.objects.create
         product = Product.objects.get(id=compra['product_id'])
         quantity = compra['quantity']
         try:
             with transaction.atomic():
-                ProductOrder.objects.create(
+                OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
@@ -65,7 +67,7 @@ class Shop(generic.View):
             )
 
     def _delete(self, compra):
-        ProductOrder.objects.get(id=compra['pick_id']).delete()
+        OrderItem.objects.get(id=compra['pick_id']).delete()
         return redirect('index')
 
     def _patch(self, compra):
@@ -73,7 +75,7 @@ class Shop(generic.View):
         if quantity == '0':
             return self._delete(compra)
             
-        pick = ProductOrder.objects.get(id=compra['pick_id'])
+        pick = OrderItem.objects.get(id=compra['pick_id'])
         pick.quantity = quantity
         pick.save()
         return redirect('index')
@@ -90,6 +92,10 @@ def close(request):
     return redirect('index')
 
 
+class OrderView(generic.ListView):
+    model = Order
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -100,6 +106,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
 
-# class ProductOrderViewSet(viewsets.ModelViewSet):
-#     queryset = ProductOrder.objects.all()
-#     serializer_class = ProductOrderSerializer
+# class OrderItemViewSet(viewsets.ModelViewSet):
+#     queryset = OrderItem.objects.all()
+#     serializer_class = OrderItemSerializer

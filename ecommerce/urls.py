@@ -14,6 +14,7 @@ router.register(r'products', views.ProductViewSet)
 urlpatterns = [
     path('', views.Shop.as_view(), name='index'),
     path('orders/', views.OrderView.as_view(), name='orders'),
+    path('managing/', views.managing, name='managing'),
     path('close/', views.close, name='close'),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),

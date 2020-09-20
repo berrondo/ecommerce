@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
 from rest_framework import viewsets
 from .models import User, Product, Order, OrderItem
@@ -6,14 +6,10 @@ from .serializers import OrderSerializer, ProductSerializer
 
 
 class Shop(generic.View):
-    def _context(self, request, msgs=None):
-        username = None
-        if request.user.is_authenticated:
-            username = request.user.username
-
-        if username:
+    def _context(self, request, user=None, msgs=None):
+        if user:
             opened_order = list(Order.objects.filter(
-                    customer__username=username,
+                    customer=user,
                     status=Order.OrderStatus.OPENED,
                 ).all())
         else:
@@ -21,6 +17,7 @@ class Shop(generic.View):
 
         try: order_id = opened_order[0].id
         except IndexError: order_id = 0
+
         return {
             'products': Product.objects.all(), 
             'orders': opened_order,
@@ -29,7 +26,16 @@ class Shop(generic.View):
         }
 
     def get(self, request, **kwargs):
-        return render(request, 'core/index.html', self._context(request))
+        username = None
+        user = None
+        if request.user.is_authenticated:
+            username = request.user.username
+            user = get_object_or_404(User, username=username)
+
+            if user.is_manager():
+                return redirect('managing')
+
+        return render(request, 'core/index.html', self._context(request, user=user))
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
@@ -86,6 +92,14 @@ def close(request):
     elif todo == 'excluir pedido':
         order.delete()
     return redirect('index')
+
+
+def managing(request):
+    ctx = {
+        'products': Product.objects.all(), 
+        'msgs': [],
+    }
+    return render(request, 'core/managing.html', ctx)
 
 
 class OrderView(generic.ListView):

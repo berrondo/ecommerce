@@ -1,29 +1,18 @@
-{% extends 'base.html' %}
+{% extends 'base_customer.html' %}
 {% load static %}
 
 {% block title %}Home{% endblock %}
 
-{% block content %}
-
-{% if user.is_authenticated %}
-  Ol&aacute;, {{ user.get_username }}! <a href="{% url 'logout' %}">logout</a>
-{% else %}
-  <p>Voc&ecirc; presisa fazer <a href="{% url 'login' %}">login</a></p>
-{% endif %}
-
-{% for msg in msgs %}
-  <p>{{ msg }}</p>
-{% endfor %}
-
+{% block orders %}
 <hr />
 <p>seu pedido <a href="{% url 'orders' %}">(ver seu histórico de pedidos)</a></p>
 <ol>
 {% for order in orders %}
     <!-- <p>{{ order }} ({{ order.get_status_display }})</p> -->
-    {% for pick in order.picks.all %}
+    {% for item in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
-        <li>{{ pick.product.name }}, $ {{ pick.product.price }} <input type="number" name="quantity" value="{{ pick.quantity }}" min="0" style="width:50px">
-            <input type="hidden" name="pick_id" value="{{ pick.id }}"> 
+        <li><input type="text" name="name" value="{{ item.product.name }}" disabled> $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
+            <input type="hidden" name="pick_id" value="{{ item.id }}"> 
             <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
@@ -38,12 +27,15 @@
   </p>
 {% endfor %}
 </ol>
+{% endblock %}
 
-<p>produtos:</p>
+
+{% block products %}
+<p>nossos produtos:</p>
     <ol>
     {% for product in products %}
         <form method="post" action="{% url 'index' %}">{% csrf_token %}
-            <li>{{ product.name }}, $ {{ product.price }} <input type="number" name="quantity" value="1" min="1" style="width:50px">
+            <li><input type="text" name="name" value="{{ product.name }}" disabled> $ <input type="text" name="price" value="{{ product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="1" min="1" style="width:50px">
                 <input type="hidden" name="user_id" value="{{ user.id }}"> 
                 <input type="hidden" name="order_id" value="{{ order_id }}"> 
                 <input type="hidden" name="product_id" value="{{ product.id }}">
@@ -52,6 +44,7 @@
         </form>
     {% endfor %}
     </ol>
+
 <hr />
 {% comment %}
 <p>Ol&aacute;, manager</p>

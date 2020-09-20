@@ -1,13 +1,12 @@
-<!-- templates/registration/login.html -->
 {% extends 'base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}login{% endblock %}
 
 {% block content %}
 <h2>login</h2>
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Log In</button>
+  <button type="submit">login</button>
 </form>
 {% endblock %}

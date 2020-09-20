@@ -1,7 +1,7 @@
 <p>pedidos</p>
 <ul>
 {% for order in object_list %}
-    <p>{{ order.customer.name }} ({{ order.get_status_display }})</p>
+  <p>{{ order.id }}{{ order.customer.name }} ({{ order.get_status_display }})</p>
     {% for item in order.picks.all %}
         <li>{{ item.quantity }} - {{ item.product.name }} - {{ item.product.price }}</li>
     {% endfor %}

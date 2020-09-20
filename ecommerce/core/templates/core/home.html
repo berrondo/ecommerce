@@ -27,6 +27,8 @@
             <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
+    {% empty %}
+        <p>ainda não há itens em seu pedido...</p>
     {% endfor %}
   <p>
     <form method="post" action="{% url 'close' %}">{% csrf_token %}

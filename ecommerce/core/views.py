@@ -8,50 +8,50 @@ from .serializers import OrderSerializer, ProductSerializer
 class Shop(generic.View):
     def _context(self, request, msgs=None):
         username = None
-        customer = None
         if request.user.is_authenticated:
             username = request.user.username
-            try: customer = User.objects.get_by_natural_key(username=username)
-            except: ...
 
-        products = Product.objects.all()
-        orders = list(Order.objects.filter(
-            customer__username=username,
-            status=Order.OrderStatus.OPENED,
-        ).all())
+        if username:
+            opened_order = list(Order.objects.filter(
+                    customer__username=username,
+                    status=Order.OrderStatus.OPENED,
+                ).all())
+        else:
+            opened_order = [Order.objects.create()]
 
-        try: order_id = orders[0].id
+        try: order_id = opened_order[0].id
         except IndexError: order_id = 0
-
-        ctx =  {
-            'products': products, 
-            'orders': orders,
+        return {
+            'products': Product.objects.all(), 
+            'orders': opened_order,
             'order_id': order_id,
             'msgs': msgs or [],
         }
-        return ctx
 
     def get(self, request, **kwargs):
         return render(request, 'core/home.html', self._context(request))
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
+        todo = compra.get('todo')
         
-        if compra.get('todo') == 'excluir':
+        if todo == 'excluir':
             return self._delete(compra)
 
-        if compra.get('todo') == 'alterar':
+        if todo == 'alterar':
             return self._patch(compra)
 
-        try: order = Order.objects.get(id=compra['order_id'])
-        except: order = Order.objects.create
+        order, created = Order.objects.get_or_create(id=compra['order_id'])
+        if created:
+            ...
+
         product = Product.objects.get(id=compra['product_id'])
         quantity = compra['quantity']
 
         order_item, created = OrderItem.objects.get_or_create(
-                    order=order,
-                    product=product,
-                    quantity=quantity,
+            order=order,
+            product=product,
+            quantity=quantity,
         )
         if created:
             return redirect('index')

@@ -34,6 +34,12 @@ class UserManager(BaseUserManager):
 class User(User):
     objects = UserManager()
 
+    def is_customer(self):
+        return self.groups.first().name == 'customers'
+
+    def is_manager(self):
+        return self.groups.first().name == 'managers'
+
 
 class Order(models.Model):
     customer = models.ForeignKey('User', related_name='orders', on_delete=models.CASCADE)

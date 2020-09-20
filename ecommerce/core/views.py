@@ -29,7 +29,7 @@ class Shop(generic.View):
         }
 
     def get(self, request, **kwargs):
-        return render(request, 'core/home.html', self._context(request))
+        return render(request, 'core/index.html', self._context(request))
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
@@ -58,7 +58,7 @@ class Shop(generic.View):
         else:
             return render(
                 request, 
-                'core/home.html', 
+                'core/index.html', 
                 self._context(request, msgs=[f"Já existe ({quantity}) {product.name} em seu pedido"])
             )
 

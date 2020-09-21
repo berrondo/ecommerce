@@ -14,7 +14,6 @@ def get_user(request):
 
 
 def get_opened_order(request):
-    import pdb; pdb.set_trace()
     if user := get_user(request):
         return user.get_opened_order()
 

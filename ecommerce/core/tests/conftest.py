@@ -21,7 +21,6 @@ def order_1(a_customer):
 @pytest.fixture
 def an_order(a_customer, avocado):
     return {
-            "order_id": a_customer.orders.first().id, 
             "product_id": avocado.id,
             "quantity": 1,
     }

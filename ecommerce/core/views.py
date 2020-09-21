@@ -1,22 +1,32 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets
 from .models import User, Product, Order, OrderItem
 from .serializers import OrderSerializer, ProductSerializer
 
 
-class Shop(generic.View):
-    def _context(self, request, user=None, msgs=None):
-        if user:
-            opened_order = list(Order.objects.filter(
-                    customer=user,
-                    status=Order.OrderStatus.OPENED,
-                ).all())
-        else:
-            opened_order = [Order.objects.create()]
+def get_user(request):
+    if request.user.is_authenticated:
+        username = request.user.username
+        user = get_object_or_404(User, username=username)
+        return user
 
-        try: order_id = opened_order[0].id
-        except IndexError: order_id = 0
+
+def get_opened_order(request):
+    import pdb; pdb.set_trace()
+    if user := get_user(request):
+        return user.get_opened_order()
+
+
+class Shop(generic.View):
+  
+    def _context(self, request, msgs=None):
+        opened_order = []
+        order_id = 0
+        if user := get_user(request):
+            opened_order = [user.get_opened_order()]
+            order_id = opened_order[0].id
 
         return {
             'products': Product.objects.all(), 
@@ -26,71 +36,74 @@ class Shop(generic.View):
         }
 
     def get(self, request, **kwargs):
-        username = None
-        user = None
-        if request.user.is_authenticated:
-            username = request.user.username
-            user = get_object_or_404(User, username=username)
-
+        if user := get_user(request):
             if user.is_manager():
                 return redirect('managing')
 
-        return render(request, 'core/index.html', self._context(request, user=user))
+        return render(request, 'core/index.html', self._context(request))
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
         todo = compra.get('todo')
         
         if todo == 'excluir':
-            return self._delete(compra)
+            return self._delete(request, compra)
 
         if todo == 'alterar':
-            return self._patch(compra)
+            return self._patch(request, compra)
+        
+        # if todo == 'comprar':
+        return self._buy(request, compra)
 
-        order, created = Order.objects.get_or_create(id=compra['order_id'])
-        if created:
-            ...
+        return redirect('index')
 
+    def _buy(self, request, compra):
+        order = get_opened_order(request)
         product = Product.objects.get(id=compra['product_id'])
-        quantity = compra['quantity']
+        quantity = int(compra['quantity'])
 
-        order_item, created = OrderItem.objects.get_or_create(
-            order=order,
-            product=product,
-            quantity=quantity,
-        )
-        if created:
+        try:
+            order.add_item(product, quantity)
             return redirect('index')
-        else:
+
+        except ValidationError as e:
             return render(
                 request, 
                 'core/index.html', 
-                self._context(request, msgs=[f"Já existe ({quantity}) {product.name} em seu pedido"])
+                self._context(request, msgs=[e.message])
             )
 
-    def _delete(self, compra):
-        OrderItem.objects.get(id=compra['pick_id']).delete()
+    def _delete(self, request, compra):
+        order = get_opened_order(request)
+        item = order.picks.get(id=compra['pick_id'])
+        item.delete()
         return redirect('index')
 
-    def _patch(self, compra):
+    def _patch(self, request, compra):
         quantity = compra['quantity']
+
         if quantity == '0':
-            return self._delete(compra)
+            return self._delete(request, compra)
             
-        pick = OrderItem.objects.get(id=compra['pick_id'])
-        pick.quantity = quantity
-        pick.save()
+        order = get_opened_order(request)
+        item = order.picks.get(id=compra['pick_id'])
+        item.quantity = quantity
+        item.save()
         return redirect('index')
 
 
 def close(request):
     compra = request.POST.dict()
     todo = compra['todo']
-    order = Order.objects.get(id=compra['order_id'])
-    if todo == 'fechar pedido':
-        order.checkout()
-    elif todo == 'excluir pedido':
-        order.delete()
+    order = get_opened_order(request)
+
+    try:
+        if todo == 'fechar pedido':
+            order.checkout()
+        elif todo == 'excluir pedido':
+            order.delete()
+    except ValidationError as e:
+        return redirect('index') #,msgs=[e.message])
     return redirect('index')
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.utils import IntegrityError
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
@@ -24,21 +25,28 @@ class UserManager(BaseUserManager):
         user.groups.add(Group.objects.create(name='managers'))
         return user
 
-    def get_by_natural_key(self, username):
-        user = super().get_by_natural_key(username)
-        if not user.orders.filter(status=Order.OrderStatus.OPENED).all():
-            user.orders.add(Order.objects.create(customer=user))
-        return user
-
 
 class User(User):
     objects = UserManager()
 
     def is_customer(self):
-        return self.groups.first().name == 'customers'
+        group_customers = self.groups.filter(name='customers')
+        return group_customers.count() == 1
 
     def is_manager(self):
-        return self.groups.first().name == 'managers'
+        group_managers = self.groups.filter(name='managers')
+        return group_managers.count() == 1
+
+    def get_opened_order(self):
+        if self.is_customer():
+            opened_order, _ = Order.objects.get_or_create(
+                customer=self,
+                status=Order.OrderStatus.OPENED)
+            return opened_order
+
+        if self.is_manager():
+            opened_orders = Order.objects.filter(status=Order.OrderStatus.OPENED)
+            return opened_orders.all()
 
 
 class Order(models.Model):
@@ -57,23 +65,48 @@ class Order(models.Model):
             default=OrderStatus.OPENED,
     )
 
-    def add_product(self, product, quantity=1):
+    class Meta:
+        verbose_name = 'pedido'
+        verbose_name_plural = 'pedidos'
+
+    def __str__(self):
+        return f'Pedido {self.id}'
+
+    def add_item(self, product, quantity=1):
         self._must_be_an_opened_order()
 
         if quantity == 0:
-            return self.remove_product(product)
-            
-        pick, created = OrderItem.objects.get_or_create(order=self, product=product)
-        pick.quantity = quantity
-        pick.save()
-        return pick
+            return self.remove_item(product)
+        
+        item, created = self.picks.get_or_create(order=self, product=product)
 
-    def remove_product(self, product):
+        if not created:
+            raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu pedido")
+
+        item.quantity = quantity
+        item.price = product.price
+        item.save()
+        return item
+
+    def update_item(self, product, quantity):
+        self._must_be_an_opened_order()
+        self._nust_be_an_non_empty_order()
+
+        if quantity == 0:
+            return self.remove_item(product)
+        
+        item = self.picks.get(order=self, product=product)
+
+        item.quantity = quantity
+        item.save()
+        return item
+
+    def remove_item(self, product):
         self._must_be_an_opened_order()
 
         try:
-            pick = OrderItem.objects.get(product=product)
-            pick.delete()
+            item = self.picks.get(product=product)
+            item.delete()
         except OrderItem.DoesNotExist:
             ...
 
@@ -82,12 +115,16 @@ class Order(models.Model):
         self._nust_be_an_non_empty_order()
 
         self.status = self.OrderStatus.TO_BE_SHIPPED
-        # for p in self.content.all():
-        #     self.content.filter(order=self, in_cart=p).price = p.price
-        #     self.content(p).save()
+        # for i in self.content.all():
+        #     self.content.filter(order=self, in_cart=i).price = i.price
+        #     self.content(i).save()
         self.save()
-        self._new_opened_order()
         return self
+
+    def delete(self):
+        self._must_be_an_opened_order()
+        self._nust_be_an_non_empty_order()
+        super().delete()
 
     def _nust_be_an_non_empty_order(self):
         if self.content.count() == 0:
@@ -96,23 +133,6 @@ class Order(models.Model):
     def _must_be_an_opened_order(self):
         if self.status != Order.OrderStatus.OPENED:
             raise ValidationError("Should not alter a not opened order!")
-
-    def delete(self):
-        self._must_be_an_opened_order()
-        self._nust_be_an_non_empty_order()
-
-        Order.objects.create(customer=self.customer)
-        super().delete()
-
-    def _new_opened_order(self):
-        return Order.objects.create(customer=self.customer)
-
-    class Meta:
-        verbose_name = 'pedido'
-        verbose_name_plural = 'pedidos'
-
-    def __str__(self):
-        return f'Pedido {self.id}'
 
 
 class Product(models.Model):

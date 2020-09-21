@@ -21,7 +21,6 @@
     {% endfor %}
   <p>
     <form method="post" action="{% url 'close' %}">{% csrf_token %}
-        <input type="hidden" name="order_id" value="{{ order.id }}"> 
         <input type="submit" name="todo" value="excluir pedido"> <input type="submit" name="todo" value="fechar pedido">
     </form>
   </p>
@@ -36,8 +35,6 @@
     {% for product in products %}
         <form method="post" action="{% url 'index' %}">{% csrf_token %}
             <li><input type="text" name="name" value="{{ product.name }}" disabled> $ <input type="text" name="price" value="{{ product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="1" min="1" style="width:50px">
-                <input type="hidden" name="user_id" value="{{ user.id }}"> 
-                <input type="hidden" name="order_id" value="{{ order_id }}"> 
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="submit" name="todo" value="comprar">
             </li>
@@ -46,9 +43,4 @@
     </ol>
 
 <hr />
-{% comment %}
-<p>Ol&aacute;, manager</p>
-<p>cadastrar produtos | todos os pedidos</p>
-{% endcomment %}
-
 {% endblock %}

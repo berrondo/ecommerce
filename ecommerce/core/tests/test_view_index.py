@@ -30,11 +30,11 @@ class TestViewIndex:
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
-        a_pick = {
+        an_item = {
                 "pick_id": a_customer.orders.first().picks.first().id, 
                 "todo": 'excluir',
         }
-        response = client.post(reverse('index'), data=a_pick)
+        response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
         assert not a_customer.orders.first().picks.exists()
 
@@ -44,12 +44,12 @@ class TestViewIndex:
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
-        a_pick = {
+        an_item = {
                 "pick_id": a_customer.orders.first().picks.first().id,
                 "quantity": 7,
                 "todo": 'alterar',
         }
-        response = client.post(reverse('index'), data=a_pick)
+        response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 7
 
@@ -59,14 +59,17 @@ class TestViewIndex:
         assert response.status_code == 302
         assert a_customer.orders.first().picks.first().quantity == 1
 
-        a_pick = {
+        an_item = {
                 "pick_id": a_customer.orders.first().picks.first().id,
                 "quantity": 0,
                 "todo": 'alterar',
         }
-        response = client.post(reverse('index'), data=a_pick)
+        response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
         assert not a_customer.orders.first().picks.exists()
+
+
+
 
     # def test_delete(self, client, a_customer, avocado):
     #     an_order = {
@@ -78,10 +81,10 @@ class TestViewIndex:
     #     response = client.post(reverse('index'), data=an_order)
     #     assert response.status_code == 302
 
-    #     a_pick = {
+    #     an_item = {
     #             "pick_id": a_customer.orders.first().picks.first().id, 
     #     }
-    #     response = client.delete(reverse('index'), data=a_pick)
+    #     response = client.delete(reverse('index'), data=an_item)
     #     assert response.status_code == 302
 
     # def test_patch(self, client, a_customer, avocado):
@@ -95,10 +98,10 @@ class TestViewIndex:
     #     assert response.status_code == 302
     #     assert a_customer.orders.first().picks.first().quantity == 1
 
-    #     a_pick = {
+    #     an_item = {
     #             "pick_id": a_customer.orders.first().picks.first().id,
     #             "quantity": 7,
     #     }
-    #     response = client.patch(reverse('index'), data=a_pick)
+    #     response = client.patch(reverse('index'), data=an_item)
     #     assert response.status_code == 302
     #     assert a_customer.orders.first().picks.first().quantity == 7

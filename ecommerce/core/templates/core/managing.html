@@ -11,7 +11,7 @@
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li><input type="text" name="name" value="{{ product.name }}"> $ <input type="text" name="price" value="{{ product.price }}" style="width:50px">
             <input type="hidden" name="product_id" value="{{ product.id }}">
-            <input type="submit" name="todo" value="alterar">
+            <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
     {% endfor %}

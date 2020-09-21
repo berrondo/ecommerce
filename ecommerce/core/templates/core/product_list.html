@@ -1,0 +1,8 @@
+<p>produtos em estoque</p>
+<ol>
+{% for product in object_list %}
+  <li>{{ product.id }} {{ product.name }} ({{ product.price }})</li>
+{% empty %}
+  <li>nenhum produto em estoque...</li>
+{% endfor %}
+</ol>

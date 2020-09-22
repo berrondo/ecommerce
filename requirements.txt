@@ -1,0 +1,5 @@
+django
+python-decouple
+dj-database-url
+django-extensions
+djangorestframework

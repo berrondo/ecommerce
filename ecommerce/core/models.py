@@ -1,9 +1,8 @@
-from django.db import models
-from django.db.utils import IntegrityError
-from django.contrib.auth.models import User, Group
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
@@ -16,13 +15,15 @@ class UserManager(BaseUserManager):
 
     def create_customer(self, password, **extra_fields):
         user = self.create_user(password, **extra_fields)
-        user.groups.add(Group.objects.create(name='customers'))
+        customers_group, _ = Group.objects.get_or_create(name='customers')
+        user.groups.add(customers_group)
         user.orders.add(Order.objects.create(customer=user))
         return user
 
     def create_manager(self, password, **extra_fields):
         user = self.create_user(password, **extra_fields)
-        user.groups.add(Group.objects.create(name='managers'))
+        managers_group, _ = Group.objects.get_or_create(name='managers')
+        user.groups.add(managers_group)
         return user
 
 

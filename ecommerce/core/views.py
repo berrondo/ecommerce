@@ -1,8 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
-from django.core.exceptions import ValidationError
 from rest_framework import viewsets
-from .models import User, Product, Order, OrderItem
+
+from .models import User, Product, Order
 from .serializers import OrderSerializer, ProductSerializer
 
 
@@ -30,7 +31,6 @@ class Shop(generic.View):
         return {
             'products': Product.objects.all(), 
             'orders': opened_order,
-            'order_id': order_id,
             'msgs': msgs or [],
         }
 
@@ -67,7 +67,7 @@ class Shop(generic.View):
 
         except ValidationError as e:
             return render(
-                request, 
+                request,
                 'core/index.html', 
                 self._context(request, msgs=[e.message])
             )

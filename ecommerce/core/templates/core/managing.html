@@ -1,10 +1,12 @@
 {% extends 'base_manager.html' %}
 
 {% block orders %}
+<hr />
 <p>pedidos pendentes: (<a href="">ver todos os pedidos...</a>)</p>
 {% endblock %}
 
 {% block stock %}
+<hr />
 <p>produtos em estoque:</p>
     <ol>
     {% for product in products %}
@@ -19,6 +21,7 @@
 {% endblock %}
 
 {% block product %}
+<hr />
 <p>cadastrar produto</p>
 <ul>
 <form method="post" action="{% url 'index' %}">{% csrf_token %}

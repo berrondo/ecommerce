@@ -115,6 +115,13 @@ class OrderView(generic.ListView):
 class ProductView(generic.ListView):
     model = Product
 
+    def post(self, request, *args, **kwargs):
+        if compra := request.POST.dict():
+            name = compra.get('name', '')
+            price = float(compra.get('price', 0))
+            self.model.objects.create(name=name, price=price)
+        return render(request, 'core/managing.html', context(request))
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()

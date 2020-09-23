@@ -42,7 +42,7 @@
 <hr />
 <p>cadastrar produto</p>
 <ul>
-<form method="post" action="{% url 'index' %}">{% csrf_token %}
+<form method="post" action="{% url 'products' %}">{% csrf_token %}
   <li><input type="text" name="name" value="nome"> $ <input type="text" name="price" value="preço" style="width:50px">
      <input type="submit" name="todo" value="cadastrar"></li>
 </form>

@@ -36,12 +36,12 @@ class TestCustomerAndOrder:
 
         item = order_1.remove_item(avocado)
         assert not item
-        assert not order_1.picks.exists()
+        assert not order_1.items.exists()
 
         # deleting again...
         item = order_1.remove_item(avocado)
         assert not item
-        assert not order_1.picks.exists()
+        assert not order_1.items.exists()
 
     def test_setting_the_quantity_of_a_product_to_zero_is_equivalent_to_delete_it(self, avocado, order_1):
         item = order_1.add_item(avocado, 3)
@@ -49,7 +49,7 @@ class TestCustomerAndOrder:
 
         item = order_1.add_item(avocado, 0)
         assert not item
-        assert not order_1.picks.exists()
+        assert not order_1.items.exists()
 
     def test_customer_checkout_finalizes_the_order(self, avocado, banana, order_1):
         order_1.add_item(avocado, 3)

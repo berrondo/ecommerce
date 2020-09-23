@@ -23,12 +23,12 @@ class TestCustomerAndOrder:
         assert item.product.name == 'Abacate'
         assert item.quantity == 1
 
-    def test_a_customer_can_change_the_quantity_of_a_chosen_product(self, avocado, order_1):
-        item = order_1.add_item(avocado, 1)
-        assert item.quantity == 1
-
-        item = order_1.update_item(avocado, 3)
-        assert item.quantity == 3
+    # def test_a_customer_can_change_the_quantity_of_a_chosen_product(self, avocado, order_1):
+    #     item = order_1.add_item(avocado, 1)
+    #     assert item.quantity == 1
+    #
+    #     item = order_1.add_item(avocado, 3)
+    #     assert item.quantity == 3
 
     def test_a_customer_can_exclude_a_product_from_his_cart(self, avocado, order_1):
         item = order_1.add_item(avocado, 3)

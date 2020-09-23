@@ -43,7 +43,7 @@ class User(User):
             opened_order, _ = Order.objects.get_or_create(
                 customer=self,
                 status=Order.OrderStatus.OPENED)
-            return opened_order
+            return [opened_order]
 
         if self.is_manager():
             opened_orders = Order.objects.filter(status=Order.OrderStatus.OPENED)
@@ -69,6 +69,7 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'pedido'
         verbose_name_plural = 'pedidos'
+        ordering = ['-id']
 
     def __str__(self):
         return f'Pedido {self.id}'
@@ -86,19 +87,6 @@ class Order(models.Model):
 
         item.quantity = quantity
         item.price = product.price
-        item.save()
-        return item
-
-    def update_item(self, product, quantity):
-        self._must_be_an_opened_order()
-        self._nust_be_an_non_empty_order()
-
-        if quantity == 0:
-            return self.remove_item(product)
-        
-        item = self.picks.get(order=self, product=product)
-
-        item.quantity = quantity
         item.save()
         return item
 
@@ -121,11 +109,6 @@ class Order(models.Model):
         #     self.content(i).save()
         self.save()
         return self
-
-    def delete(self):
-        self._must_be_an_opened_order()
-        self._nust_be_an_non_empty_order()
-        super().delete()
 
     def _nust_be_an_non_empty_order(self):
         if self.content.count() == 0:

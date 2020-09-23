@@ -6,8 +6,7 @@
 {% block orders %}
 <p>seu pedido <a href="{% url 'orders' %}">(ver seu histórico de pedidos)</a></p>
 <ol>
-{% for order in orders %}
-    <!-- <p>{{ order }} ({{ order.get_status_display }})</p> -->
+{% for order in opened_orders %}
     {% for item in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li><input type="text" name="name" value="{{ item.product.name }}" disabled> $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
@@ -19,7 +18,7 @@
         <p>ainda não há itens em seu pedido...</p>
     {% endfor %}
   <p>
-    <form method="post" action="{% url 'close' %}">{% csrf_token %}
+    <form method="post" action="{% url 'orders' %}">{% csrf_token %}
         <input type="submit" name="todo" value="excluir pedido"> <input type="submit" name="todo" value="fechar pedido">
     </form>
   </p>
@@ -33,7 +32,7 @@
 <p>nossos produtos:</p>
     <ol>
     {% for product in products %}
-        <form method="post" action="{% url 'index' %}">{% csrf_token %}
+        <form method="post" action="{% url 'orders' %}">{% csrf_token %}
             <li><input type="text" name="name" value="{{ product.name }}" disabled> $ <input type="text" name="price" value="{{ product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="1" min="1" style="width:50px">
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="submit" name="todo" value="comprar">

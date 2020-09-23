@@ -1,11 +1,12 @@
-<p>pedidos</p>
-<ul>
+<h3>pedidos</h3>
 {% for order in object_list %}
-  <p>{{ order.id }}{{ order.customer.name }} ({{ order.get_status_display }})</p>
+  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username }}</p>
+    <ul>
     {% for item in order.picks.all %}
-        <li>{{ item.quantity }} - {{ item.product.name }} - {{ item.product.price }}</li>
+        <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }})</li>
     {% endfor %}
+    </ul>
+    <br/>
 {% empty %}
-    <li>nenhum pedido...</li>
+    <p>nenhum pedido...</p>
 {% endfor %}
-</ul>

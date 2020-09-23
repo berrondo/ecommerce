@@ -19,27 +19,28 @@ def get_opened_order(request):
         return user.get_opened_order()
 
 
+def context(request, msgs=None):
+    opened_orders = []
+    if user := get_user(request):
+        if user.is_customer():
+            opened_orders = user.get_opened_order()
+        elif user.is_manager():
+            opened_orders = Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
+
+    return {
+        'products': Product.objects.all(),
+        'opened_orders': opened_orders,
+        'msgs': msgs or [],
+    }
+
+
 class Shop(generic.View):
-  
-    def _context(self, request, msgs=None):
-        opened_order = []
-        order_id = 0
-        if user := get_user(request):
-            opened_order = [user.get_opened_order()]
-            order_id = opened_order[0].id
-
-        return {
-            'products': Product.objects.all(), 
-            'orders': opened_order,
-            'msgs': msgs or [],
-        }
-
     def get(self, request, **kwargs):
         if user := get_user(request):
             if user.is_manager():
                 return redirect('managing')
 
-        return render(request, 'core/index.html', self._context(request))
+        return render(request, 'core/index.html', context(request))
 
     def post(self, request, **kwargs):
         compra = request.POST.dict()
@@ -50,30 +51,11 @@ class Shop(generic.View):
 
         if todo == 'alterar':
             return self._patch(request, compra)
-        
-        # if todo == 'comprar':
-        return self._buy(request, compra)
 
         return redirect('index')
 
-    def _buy(self, request, compra):
-        order = get_opened_order(request)
-        product = Product.objects.get(id=compra['product_id'])
-        quantity = int(compra['quantity'])
-
-        try:
-            order.add_item(product, quantity)
-            return redirect('index')
-
-        except ValidationError as e:
-            return render(
-                request,
-                'core/index.html', 
-                self._context(request, msgs=[e.message])
-            )
-
     def _delete(self, request, compra):
-        order = get_opened_order(request)
+        order = get_opened_order(request)[0]
         item = order.picks.get(id=compra['pick_id'])
         item.delete()
         return redirect('index')
@@ -84,38 +66,58 @@ class Shop(generic.View):
         if quantity == '0':
             return self._delete(request, compra)
             
-        order = get_opened_order(request)
+        order = get_opened_order(request)[0]
         item = order.picks.get(id=compra['pick_id'])
         item.quantity = quantity
         item.save()
         return redirect('index')
 
 
-def close(request):
-    compra = request.POST.dict()
-    todo = compra['todo']
-    order = get_opened_order(request)
-
-    try:
-        if todo == 'fechar pedido':
-            order.checkout()
-        elif todo == 'excluir pedido':
-            order.delete()
-    except ValidationError as e:
-        return redirect('index') #,msgs=[e.message])
-    return redirect('index')
-
-
 def managing(request):
-    ctx = {
-        'products': Product.objects.all(), 
-        'msgs': [],
-    }
-    return render(request, 'core/managing.html', ctx)
+    return render(request, 'core/managing.html', context(request))
 
 
 class OrderView(generic.ListView):
     model = Order
+
+    def get(self, request, *args, **kwargs):
+        user = get_user(request)
+        if user.is_customer():
+            self.queryset = Order.objects.filter(customer=user).all()
+        return super().get(request, args, kwargs)
+
+    def post(self, request, *args, **kwargs):
+        compra = request.POST.dict()
+        todo = compra['todo']
+        order = get_opened_order(request)[0]
+
+        if todo == 'comprar':
+            product = Product.objects.get(id=compra['product_id'])
+            quantity = int(compra['quantity'])
+
+            try:
+                order.add_item(product, quantity)
+            except ValidationError as e:
+                return render(request, 'core/index.html', context(request, msgs=[e.message]))
+
+        elif todo == 'fechar pedido':
+            try:
+                order.checkout()
+            except ValidationError as e:
+                return render(request, 'core/index.html', context(request, msgs=[e.message]))
+
+        elif todo == 'excluir pedido':
+            for item in order.picks.all():
+                item.delete()
+
+        elif todo == 'despachar':
+            order_id = compra['order_id']
+            order = Order.objects.get(id=order_id)
+            order.status = Order.OrderStatus.SHIPPED
+            order.save()
+            return render(request, 'core/managing.html', context(request))
+
+        return redirect('index')
 
 
 class ProductView(generic.ListView):

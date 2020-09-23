@@ -1,8 +1,21 @@
 {% extends 'base_manager.html' %}
 
 {% block orders %}
-<hr />
-<p>pedidos pendentes: (<a href="">ver todos os pedidos...</a>)</p>
+<p>pedidos para despachar: (<a href="{% url 'orders' %}">ver todos os pedidos...</a>)</p>
+    <ul>
+    {% for order in opened_orders %}
+      <li><form method="post" action="{% url 'orders' %}">{% csrf_token %}Pedido [{{ order.id }}] de {{ order.customer.username }} :: {{ order.get_status_display }} --- <input type="hidden" name="order_id" value="{{ order.id }}"><input type="submit" name="todo" value="despachar"></form>
+        <ul>
+        {% for item in order.picks.all %}
+            <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }})</li>
+        {% endfor %}
+        </ul>
+      </li>
+        <br/>
+    {% empty %}
+        <li>nenhum pedido aberto...</li>
+    {% endfor %}
+     </ul>
 {% endblock %}
 
 {% block stock %}

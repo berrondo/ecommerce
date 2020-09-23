@@ -17,6 +17,6 @@ cd ecommerce
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp contrib/env-sample .env
+cp contrib/env_sample .env
 python manage.py test
 ```

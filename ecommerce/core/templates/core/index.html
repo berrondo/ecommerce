@@ -4,7 +4,6 @@
 {% block title %}Home{% endblock %}
 
 {% block orders %}
-<hr />
 <p>seu pedido <a href="{% url 'orders' %}">(ver seu histórico de pedidos)</a></p>
 <ol>
 {% for order in orders %}
@@ -26,11 +25,11 @@
   </p>
 {% endfor %}
 </ol>
+<hr />
 {% endblock %}
 
 
 {% block products %}
-<hr />
 <p>nossos produtos:</p>
     <ol>
     {% for product in products %}

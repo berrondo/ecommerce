@@ -10,7 +10,8 @@ tasks:
   - init: 
       pipenv install &&
       pipenv run manage migrate &&
-      pipenv run manage createsuperuser --email a@a.com --no-input
+      pipenv run manage createsuperuser --email a@a.com --no-input &&
+      cp contrib/env_sample .env
     command: 
       pipenv run manage runserver 0.0.0.0:8080
     

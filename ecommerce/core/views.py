@@ -51,7 +51,7 @@ class Shop(generic.View):
             item = order.picks.get(id=item_id)
             quantity = int(compra.get('quantity', 0))
 
-            todo = compra.get('todo') if quantity else 'excluir'
+            todo = compra.get('todo', '') if quantity else 'excluir'
 
             if todo == 'alterar':
                 item.quantity = quantity
@@ -98,7 +98,7 @@ class OrderView(generic.ListView):
                 except ValidationError as e:
                     return render(request, 'core/index.html', context(request, msgs=[e.message]))
 
-            elif todo == 'excluir pedido':
+            elif todo == 'esvaziar carrinho':
                 for item in order.picks.all():
                     item.delete()
 

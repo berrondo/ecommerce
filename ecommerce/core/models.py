@@ -79,7 +79,7 @@ class Order(models.Model):
         item, created = self.picks.get_or_create(order=self, product=product)
 
         if not created:
-            raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu pedido")
+            raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu carrinho")
 
         item.quantity = quantity
         item.price = product.price

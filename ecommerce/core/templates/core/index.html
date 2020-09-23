@@ -4,7 +4,7 @@
 {% block title %}Home{% endblock %}
 
 {% block orders %}
-<p>seu pedido <a href="{% url 'orders' %}">(ver seu histórico de pedidos)</a></p>
+<p>seu carrinho <a href="{% url 'orders' %}">(ver suas compras anteriores)</a></p>
 <ol>
 {% for order in opened_orders %}
     {% for item in order.picks.all %}
@@ -14,14 +14,16 @@
             <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
+        {% if order and forloop.last %}
+          <p>
+            <form method="post" action="{% url 'orders' %}">{% csrf_token %}
+                <input type="submit" name="todo" value="esvaziar carrinho"> <input type="submit" name="todo" value="fechar pedido">
+            </form>
+          </p>
+        {% endif %}
     {% empty %}
-        <p>ainda não há itens em seu pedido...</p>
+        <p>...está vazio...</p>
     {% endfor %}
-  <p>
-    <form method="post" action="{% url 'orders' %}">{% csrf_token %}
-        <input type="submit" name="todo" value="excluir pedido"> <input type="submit" name="todo" value="fechar pedido">
-    </form>
-  </p>
 {% endfor %}
 </ol>
 <hr />

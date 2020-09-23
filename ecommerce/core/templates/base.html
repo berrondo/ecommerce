@@ -9,7 +9,7 @@
   <main>
     {% block login %}
         {% if user.is_authenticated %}
-        Ol&aacute;, {{ user.get_username }}! <a href="{% url 'logout' %}">logout</a>
+        Ol&aacute;, {{ user.get_username }}! <a href="{% url 'logout' %}">sair</a>
         {% else %}
         <p>Voc&ecirc; presisa fazer <a href="{% url 'login' %}">login</a></p>
         {% endif %}

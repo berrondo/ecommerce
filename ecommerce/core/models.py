@@ -49,6 +49,10 @@ class User(User):
 class Order(models.Model):
     customer = models.ForeignKey('User', related_name='orders', on_delete=models.CASCADE)
     content = models.ManyToManyField('Product', through='OrderItem', blank=True)
+
+    @property
+    def total(self):
+        return sum(i.sub_total for i in self.picks.all())
     
     class OrderStatus(models.TextChoices):
         OPENED = 'OPENED', _('Aberto')
@@ -133,6 +137,10 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField('quantidade', default=0)
     # purchased price:
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @property
+    def sub_total(self):
+        return self.quantity * self.product.price
 
     class Meta:
         unique_together = ('order', 'product')

@@ -9,7 +9,10 @@
 {% for order in opened_orders %}
     {% for item in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
-        <li><input type="text" name="name" value="{{ item.product.name }}" disabled> $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
+        <li><input type="text" name="name" value="{{ item.product.name }}" disabled>
+            $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>
+            x <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
+            = <input type="text" name="price" value="{{ item.sub_total }}" style="width:50px" disabled>
             <input type="hidden" name="item_id" value="{{ item.id }}">
             <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
@@ -17,7 +20,9 @@
         {% if order and forloop.last %}
           <p>
             <form method="post" action="{% url 'orders' %}">{% csrf_token %}
-                <input type="submit" name="todo" value="esvaziar carrinho"> <input type="submit" name="todo" value="fechar pedido">
+                $ valor total da compra: <input type="text" name="price" value="{{ order.total }}" style="width:50px" disabled>
+                <input type="submit" name="todo" value="esvaziar carrinho">
+                <input type="submit" name="todo" value="fechar pedido">
             </form>
           </p>
         {% endif %}

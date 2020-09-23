@@ -1,9 +1,9 @@
 <h3>pedidos</h3>
 {% for order in object_list %}
-  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username }}</p>
+  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username }}. total: <strong>{{ order.total }}</strong></p>
     <ul>
     {% for item in order.picks.all %}
-        <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }})</li>
+        <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }}). sub total: <strong>{{ item.sub_total }}</strong></li>
     {% endfor %}
     </ul>
     <br/>

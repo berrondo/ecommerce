@@ -10,7 +10,7 @@
     {% for item in order.picks.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li><input type="text" name="name" value="{{ item.product.name }}" disabled> $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
-            <input type="hidden" name="pick_id" value="{{ item.id }}"> 
+            <input type="hidden" name="item_id" value="{{ item.id }}">
             <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>

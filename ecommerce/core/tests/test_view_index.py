@@ -42,7 +42,7 @@ class TestViewIndex:
         assert a_customer.orders.first().picks.first().quantity == 1
 
         an_item = {
-                "pick_id": a_customer.orders.first().picks.first().id, 
+                "item_id": a_customer.orders.first().picks.first().id,
                 "todo": 'excluir',
         }
         response = client.post(reverse('index'), data=an_item)
@@ -57,7 +57,7 @@ class TestViewIndex:
         assert a_customer.orders.first().picks.first().quantity == 1
 
         an_item = {
-                "pick_id": a_customer.orders.first().picks.first().id,
+                "item_id": a_customer.orders.first().picks.first().id,
                 "quantity": 7,
                 "todo": 'alterar',
         }
@@ -73,7 +73,7 @@ class TestViewIndex:
         assert a_customer.orders.first().picks.first().quantity == 1
 
         an_item = {
-                "pick_id": a_customer.orders.first().picks.first().id,
+                "item_id": a_customer.orders.first().picks.first().id,
                 "quantity": 0,
                 "todo": 'alterar',
         }

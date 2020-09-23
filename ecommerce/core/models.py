@@ -52,7 +52,7 @@ class Order(models.Model):
 
     @property
     def total(self):
-        return sum(i.sub_total for i in self.picks.all())
+        return sum(i.sub_total for i in self.items.all())
     
     class OrderStatus(models.TextChoices):
         OPENED = 'OPENED', _('Aberto')
@@ -80,7 +80,7 @@ class Order(models.Model):
         if quantity == 0:
             return self.remove_item(product)
         
-        item, created = self.picks.get_or_create(order=self, product=product)
+        item, created = self.items.get_or_create(order=self, product=product)
 
         if not created:
             raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu carrinho")
@@ -94,7 +94,7 @@ class Order(models.Model):
         self._must_be_an_opened_order()
 
         try:
-            item = self.picks.get(product=product)
+            item = self.items.get(product=product)
             item.delete()
         except OrderItem.DoesNotExist:
             ...
@@ -120,7 +120,7 @@ class Order(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
@@ -132,8 +132,8 @@ class Product(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey('Order', related_name='picks', on_delete=models.CASCADE, verbose_name='pedido')
-    product = models.ForeignKey('Product', related_name='in_cart', on_delete=models.CASCADE, verbose_name='produto')
+    order = models.ForeignKey('Order', related_name='items', on_delete=models.CASCADE, verbose_name='pedido')
+    product = models.ForeignKey('Product', related_name='order_item', on_delete=models.CASCADE, verbose_name='produto')
     quantity = models.PositiveIntegerField('quantidade', default=0)
     # purchased price:
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)

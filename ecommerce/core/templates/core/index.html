@@ -7,7 +7,7 @@
 <p>seu carrinho <a href="{% url 'orders' %}">(ver suas compras anteriores)</a></p>
 <ol>
 {% for order in opened_orders %}
-    {% for item in order.picks.all %}
+    {% for item in order.items.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li><input type="text" name="name" value="{{ item.product.name }}" disabled>
             $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>

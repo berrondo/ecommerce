@@ -47,36 +47,36 @@ class TestViewIndex:
         }
         response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
-        assert not a_customer.orders.first().picks.exists()
+        assert not a_customer.orders.first().items.exists()
 
     def test_patch_via_post(self, client, a_customer, an_order):
         client.login(username='bob', password='12345')
         response = client.post(reverse('orders'), data=an_order)
 
         assert response.status_code == 302
-        assert a_customer.orders.first().picks.first().quantity == 1
+        assert a_customer.orders.first().items.first().quantity == 1
 
         an_item = {
-                "item_id": a_customer.orders.first().picks.first().id,
+                "item_id": a_customer.orders.first().items.first().id,
                 "quantity": 7,
                 "todo": 'alterar',
         }
         response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
-        assert a_customer.orders.first().picks.first().quantity == 7
+        assert a_customer.orders.first().items.first().quantity == 7
 
     def test_patch_via_post_with_quantity_equals_zero_is_equivalent_to_delete(self, client, a_customer, an_order):
         client.login(username='bob', password='12345')
         response = client.post(reverse('orders'), data=an_order)
 
         assert response.status_code == 302
-        assert a_customer.orders.first().picks.first().quantity == 1
+        assert a_customer.orders.first().items.first().quantity == 1
 
         an_item = {
-                "item_id": a_customer.orders.first().picks.first().id,
+                "item_id": a_customer.orders.first().items.first().id,
                 "quantity": 0,
                 "todo": 'alterar',
         }
         response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
-        assert not a_customer.orders.first().picks.exists()
+        assert not a_customer.orders.first().items.exists()

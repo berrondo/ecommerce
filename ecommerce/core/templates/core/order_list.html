@@ -3,7 +3,7 @@
   <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username }}.
       total: <strong>$ {{ order.total }}</strong></p>
     <ul>
-    {% for item in order.picks.all %}
+    {% for item in order.items.all %}
         <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }}).
             sub total: <strong>$ {{ item.sub_total }}</strong></li>
     {% endfor %}

@@ -48,7 +48,7 @@ class Shop(generic.View):
         if compra := request.POST.dict():
             order = get_opened_order(request)
             item_id = int(compra.get('item_id', 0))
-            item = order.picks.get(id=item_id)
+            item = order.items.get(id=item_id)
             quantity = int(compra.get('quantity', 0))
 
             todo = compra.get('todo', '') if quantity else 'excluir'
@@ -99,7 +99,7 @@ class OrderView(generic.ListView):
                     return render(request, 'core/index.html', context(request, msgs=[e.message]))
 
             elif todo == 'esvaziar carrinho':
-                for item in order.picks.all():
+                for item in order.items.all():
                     item.delete()
 
             elif todo == 'despachar':

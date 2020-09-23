@@ -43,11 +43,7 @@ class User(User):
             opened_order, _ = Order.objects.get_or_create(
                 customer=self,
                 status=Order.OrderStatus.OPENED)
-            return [opened_order]
-
-        if self.is_manager():
-            opened_orders = Order.objects.filter(status=Order.OrderStatus.OPENED)
-            return opened_orders.all()
+            return opened_order
 
 
 class Order(models.Model):

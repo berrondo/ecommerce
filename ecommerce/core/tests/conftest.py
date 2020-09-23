@@ -23,6 +23,7 @@ def an_order(a_customer, avocado):
     return {
             "product_id": avocado.id,
             "quantity": 1,
+            "todo": "comprar",
     }
 
 

@@ -23,7 +23,7 @@ def context(request, msgs=None):
     opened_orders = []
     if user := get_user(request):
         if user.is_customer():
-            opened_orders = user.get_opened_order()
+            opened_orders = [user.get_opened_order()]
         elif user.is_manager():
             opened_orders = Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
 
@@ -35,41 +35,31 @@ def context(request, msgs=None):
 
 
 class Shop(generic.View):
-    def get(self, request, **kwargs):
+    @staticmethod
+    def get(request, **kwargs):
         if user := get_user(request):
             if user.is_manager():
                 return redirect('managing')
 
         return render(request, 'core/index.html', context(request))
 
-    def post(self, request, **kwargs):
-        compra = request.POST.dict()
-        todo = compra.get('todo')
-        
-        if todo == 'excluir':
-            return self._delete(request, compra)
+    @staticmethod
+    def post(request, **kwargs):
+        if compra := request.POST.dict():
+            order = get_opened_order(request)
+            pick_id = int(compra.get('pick_id', 0))
+            item = order.picks.get(id=pick_id)
+            quantity = int(compra.get('quantity', 0))
 
-        if todo == 'alterar':
-            return self._patch(request, compra)
+            todo = compra.get('todo') if quantity else 'excluir'
 
-        return redirect('index')
+            if todo == 'alterar':
+                item.quantity = quantity
+                item.save()
 
-    def _delete(self, request, compra):
-        order = get_opened_order(request)[0]
-        item = order.picks.get(id=compra['pick_id'])
-        item.delete()
-        return redirect('index')
+            if todo == 'excluir':
+                item.delete()
 
-    def _patch(self, request, compra):
-        quantity = compra['quantity']
-
-        if quantity == '0':
-            return self._delete(request, compra)
-            
-        order = get_opened_order(request)[0]
-        item = order.picks.get(id=compra['pick_id'])
-        item.quantity = quantity
-        item.save()
         return redirect('index')
 
 
@@ -86,36 +76,38 @@ class OrderView(generic.ListView):
             self.queryset = Order.objects.filter(customer=user).all()
         return super().get(request, args, kwargs)
 
-    def post(self, request, *args, **kwargs):
-        compra = request.POST.dict()
-        todo = compra['todo']
-        order = get_opened_order(request)[0]
+    @staticmethod
+    def post(request, *args, **kwargs):
+        if compra := request.POST.dict():
+            todo = compra.get('todo', '')
+            order = get_opened_order(request)
 
-        if todo == 'comprar':
-            product = Product.objects.get(id=compra['product_id'])
-            quantity = int(compra['quantity'])
+            if todo == 'comprar':
+                product_id = int(compra.get('product_id', 0))
+                quantity = int(compra.get('quantity', 0))
+                product = Product.objects.get(id=product_id)
 
-            try:
-                order.add_item(product, quantity)
-            except ValidationError as e:
-                return render(request, 'core/index.html', context(request, msgs=[e.message]))
+                try:
+                    order.add_item(product, quantity)
+                except ValidationError as e:
+                    return render(request, 'core/index.html', context(request, msgs=[e.message]))
 
-        elif todo == 'fechar pedido':
-            try:
-                order.checkout()
-            except ValidationError as e:
-                return render(request, 'core/index.html', context(request, msgs=[e.message]))
+            elif todo == 'fechar pedido':
+                try:
+                    order.checkout()
+                except ValidationError as e:
+                    return render(request, 'core/index.html', context(request, msgs=[e.message]))
 
-        elif todo == 'excluir pedido':
-            for item in order.picks.all():
-                item.delete()
+            elif todo == 'excluir pedido':
+                for item in order.picks.all():
+                    item.delete()
 
-        elif todo == 'despachar':
-            order_id = compra['order_id']
-            order = Order.objects.get(id=order_id)
-            order.status = Order.OrderStatus.SHIPPED
-            order.save()
-            return render(request, 'core/managing.html', context(request))
+            elif todo == 'despachar':
+                if order_id := int(compra.get('order_id', 0)):
+                    order = Order.objects.get(id=order_id)
+                    order.status = Order.OrderStatus.SHIPPED
+                    order.save()
+                    return render(request, 'core/managing.html', context(request))
 
         return redirect('index')
 

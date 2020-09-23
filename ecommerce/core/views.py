@@ -8,24 +8,34 @@ from .serializers import OrderSerializer, ProductSerializer
 
 
 def get_user(request):
-    if request.user.is_authenticated:
+    user = request.user
+    if user.is_authenticated:
         username = request.user.username
-        user = get_object_or_404(User, username=username)
-        return user
+        my_user = User.objects.filter(username=username).first()
+        if my_user:
+            user = my_user
+
+    return user
 
 
 def get_opened_order(request):
     if user := get_user(request):
-        return user.get_opened_order()
+        try:
+            return user.get_opened_order()
+        except AttributeError:
+            ...
 
 
 def context(request, msgs=None):
     opened_orders = []
     if user := get_user(request):
-        if user.is_customer():
-            opened_orders = [user.get_opened_order()]
-        elif user.is_manager():
-            opened_orders = Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
+        try:
+            if user.is_customer():
+                opened_orders = [user.get_opened_order()]
+            elif user.is_manager():
+                opened_orders = Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
+        except AttributeError:
+            ...
 
     return {
         'products': Product.objects.all(),
@@ -38,8 +48,11 @@ class Shop(generic.View):
     @staticmethod
     def get(request, **kwargs):
         if user := get_user(request):
-            if user.is_manager():
-                return redirect('managing')
+            try:
+                if user.is_manager():
+                    return redirect('managing')
+            except AttributeError:
+                ...
 
         return render(request, 'core/index.html', context(request))
 
@@ -72,8 +85,11 @@ class OrderView(generic.ListView):
 
     def get(self, request, *args, **kwargs):
         user = get_user(request)
-        if user.is_customer():
-            self.queryset = Order.objects.filter(customer=user).all()
+        try:
+            if user.is_customer():
+                self.queryset = Order.objects.filter(customer=user).all()
+        except AttributeError:
+            self.queryset = Order.objects.filter(id=-1).all()
         return super().get(request, args, kwargs)
 
     @staticmethod

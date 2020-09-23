@@ -133,9 +133,24 @@ class ProductView(generic.ListView):
 
     def post(self, request, *args, **kwargs):
         if compra := request.POST.dict():
+            todo = compra.get('todo', '')
             name = compra.get('name', '')
-            price = float(compra.get('price', 0))
-            self.model.objects.create(name=name, price=price)
+            price = float(compra.get('price', '0').replace(',', '.'))
+            product_id = int(compra.get('product_id', 0))
+
+            if todo == 'cadastrar':
+                self.model.objects.create(name=name, price=price)
+
+            if todo == 'alterar':
+                product = self.model.objects.get(id=product_id)
+                product.name = name
+                product.price = price
+                product.save()
+
+            if todo == 'excluir':
+                product = self.model.objects.get(id=product_id)
+                product.delete()
+
         return render(request, 'core/managing.html', context(request))
 
 

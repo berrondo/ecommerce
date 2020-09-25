@@ -1,10 +1,11 @@
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views import generic
 from rest_framework import viewsets
 
 from .forms import ProductForm
-from .models import User, Product, Order
+from .models import Product, Order
 from .serializers import OrderSerializer, ProductSerializer
 
 
@@ -15,7 +16,6 @@ def get_user(request):
         my_user = User.objects.filter(username=username).first()
         if my_user:
             user = my_user
-
     return user
 
 
@@ -28,9 +28,9 @@ def get_opened_order(request):
             return opened_order
 
 
-def get_orders(user):
+def get_orders(request, user):
     if in_group(user, 'customers'):
-        return [get_opened_order(user)]
+        return [get_opened_order(request)]
     elif in_group(user, 'managers'):
         return Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
     return []
@@ -51,7 +51,7 @@ def user_in_group(request, group_name):
 def get_context(request, msgs=None):
     return {
         'products': Product.objects.all(),
-        'orders': get_orders(get_user(request)),
+        'orders': get_orders(request, get_user(request)),
         'msgs': msgs or [],
     }
 
@@ -62,7 +62,6 @@ class Shop(generic.View):
         if user := get_user(request):
             if in_group(user, 'managers'):
                 return redirect('products')
-
         return render(request, 'core/index.html', get_context(request))
 
     @staticmethod
@@ -91,6 +90,8 @@ class OrderView(generic.ListView):
     def get(self, request, *args, **kwargs):
         if user := user_in_group(request, 'customers'):
             self.queryset = Order.objects.filter(customer=user).all()
+        elif not user_in_group(request, 'managers'):
+            self.queryset = Order.objects.none()
         return super().get(request, args, kwargs)
 
     @staticmethod

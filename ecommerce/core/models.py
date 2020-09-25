@@ -16,15 +16,11 @@ def set_group_permissions(group):
     if group.name == 'managers':
         ...
         # group.permissions.add(
-        #     can_*_products
-        #     can_view_orders
-        #     can_dispatch_opened_orders
+        #     ('can__products', ''),
+        #     ('can_view_orders', 'Can view orders'),
+        #     ('can_dispatch_opened_orders', 'Can dispatch  opened orders'),
         # )
     return group
-
-
-class User(User):
-    ...
 
 
 def create_user(username, password, in_group='customers'):
@@ -43,7 +39,7 @@ def create_user(username, password, in_group='customers'):
 
 
 class Order(models.Model):
-    customer = models.ForeignKey('User', related_name='orders', on_delete=models.CASCADE)
+    customer = models.ForeignKey('auth.User', related_name='orders', on_delete=models.CASCADE)
     content = models.ManyToManyField('Product', through='OrderItem', blank=True)
 
     @property

@@ -1,6 +1,6 @@
 import pytest
 
-from ..models import User, Product
+from ..models import create_user, Product
 
 
 @pytest.fixture(autouse=True)
@@ -10,7 +10,7 @@ def enable_db_access(db):
 
 @pytest.fixture
 def a_customer():
-    return User.objects.create_customer(username='bob', password='12345')
+    return create_user(username='bob', password='12345')
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def avocado():
 
 @pytest.fixture
 def a_manager():
-    return User.objects.create_manager(username='ann', password='54321')
+    return create_user(username='ann', password='54321', in_group='managers')
 
 
 @pytest.fixture

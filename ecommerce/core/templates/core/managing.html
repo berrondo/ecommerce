@@ -3,24 +3,24 @@
 {% block orders %}
 <p>pedidos para despachar: (<a href="{% url 'orders' %}">ver todos os pedidos...</a>)</p>
     <ul>
-    {% for order in opened_orders %}
+    {% for order in orders %}
       <li><form method="post" action="{% url 'orders' %}">
           {% csrf_token %}
-          Pedido [{{ order.id }}] de {{ order.customer.username }}.
+          Pedido [{{ order.id }}] de {{ order.customer.username|title }}.
           total: <strong>$ {{ order.total }}</strong> :: {{ order.get_status_display }} ---
           <input type="hidden" name="order_id" value="{{ order.id }}">
           <input type="submit" name="todo" value="despachar">
       </form>
         <ul>
         {% for item in order.items.all %}
-            <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }}).
+            <li>{{ item.quantity }} {{ item.product.name }}{{ item.quantity|pluralize }} ({{ item.product.price }}).
                 sub total: <strong>$ {{ item.sub_total }}</strong></li>
         {% endfor %}
         </ul>
       </li>
         <br/>
     {% empty %}
-        <li>nenhum pedido aberto...</li>
+        <li>nenhum pedido para despachar...</li>
     {% endfor %}
      </ul>
 {% endblock %}

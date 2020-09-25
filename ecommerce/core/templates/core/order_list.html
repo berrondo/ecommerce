@@ -1,14 +1,39 @@
 <h3>pedidos</h3>
-{% for order in object_list %}
-  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username }}.
-      total: <strong>$ {{ order.total }}</strong></p>
+{#{% for order in object_list %}#}
+{#  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username|title }}.#}
+{#      total: <strong>$ {{ order.total }}</strong></p>#}
+{#    <ul>#}
+{#    {% for item in order.items.all %}#}
+{#        <li>{{ item.quantity }} {{ item.product.name }}{{ item.quantity|pluralize }} ({{ item.product.price }}).#}
+{#            sub total: <strong>$ {{ item.sub_total }}</strong></li>#}
+{#    {% endfor %}#}
+{#    </ul>#}
+{#    <br/>#}
+{#{% empty %}#}
+{#    <p>nenhum pedido...</p>#}
+{#{% endfor %}#}
+
+
+{% regroup object_list by status as status_list %}
+<ul>
+{% for status in status_list %}
+    <li>{{ status.grouper }}
     <ul>
-    {% for item in order.items.all %}
-        <li>{{ item.quantity }} {{ item.product.name }} ({{ item.product.price }}).
-            sub total: <strong>$ {{ item.sub_total }}</strong></li>
-    {% endfor %}
+        {% for order in status.list %}
+            <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username|title }}.
+                total: <strong>$ {{ order.total }}</strong>
+            </p>
+            <ul>
+            {% for item in order.items.all %}
+                <li>{{ item.quantity }} {{ item.product.name }}{{ item.quantity|pluralize }} ({{ item.product.price }}).
+                    sub total: <strong>$ {{ item.sub_total }}</strong></li>
+            {% endfor %}
+            </ul>
+        {% endfor %}
     </ul>
+    </li>
     <br/>
 {% empty %}
     <p>nenhum pedido...</p>
 {% endfor %}
+</ul>

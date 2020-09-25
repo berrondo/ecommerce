@@ -1,4 +1,3 @@
-
 from django.urls import reverse
 
 
@@ -20,7 +19,7 @@ class TestViewIndex:
         response = client.post(reverse('orders'), data=an_order)
 
         assert response.status_code == 302
-        assert a_customer.get_opened_order().items.first().quantity == 1
+        assert a_customer.orders.first().items.first().quantity == 1
 
     def test_post_the_same_product_twice(self, client, a_customer, an_order):
         client.login(username='bob', password='12345')
@@ -80,3 +79,11 @@ class TestViewIndex:
         response = client.post(reverse('index'), data=an_item)
         assert response.status_code == 302
         assert not a_customer.orders.first().items.exists()
+
+    # def test_user_has_opened_order(self, client, an_order, order_1):
+    #     client.login(username='bob', password='12345')
+    #
+    #     response = client.post(reverse('orders'), data=an_order)
+    #
+    #     from ..views import get_opened_order
+    #     assert get_opened_order(response) == order_1

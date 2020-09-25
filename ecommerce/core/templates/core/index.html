@@ -6,7 +6,7 @@
 {% block orders %}
 <p>seu carrinho <a href="{% url 'orders' %}">(ver suas compras anteriores)</a></p>
 <ol>
-{% for order in opened_orders %}
+{% for order in orders %}
     {% for item in order.items.all %}
     <form method="post" action="{% url 'index' %}">{% csrf_token %}
         <li><input type="text" name="name" value="{{ item.product.name }}" disabled>
@@ -20,7 +20,8 @@
         {% if order and forloop.last %}
           <p>
             <form method="post" action="{% url 'orders' %}">{% csrf_token %}
-                $ valor total da compra: <input type="text" name="price" value="{{ order.total }}" style="width:50px" disabled>
+                valor total da compra: <strong>$ {{ order.total }}</strong>
+{#                $ valor total da compra: <input type="text" name="price" value="{{ order.total }}" style="width:50px" disabled>#}
                 <input type="submit" name="todo" value="esvaziar carrinho">
                 <input type="submit" name="todo" value="fechar pedido">
             </form>

@@ -5,11 +5,11 @@ from django.core.exceptions import ValidationError
 class TestCustomerAndOrder:
     def test_a_customer_is_created_in_the_correct_group_with_an_opened_order(self, a_customer, order_1):
         assert a_customer.groups.first().name == 'customers'
-        assert a_customer.is_customer()
+        # assert a_customer.is_customer()
 
         assert order_1.status == 'OPENED'
         assert order_1.get_status_display() == 'Aberto'
-        assert a_customer.get_opened_order() == order_1
+        assert a_customer.orders.first() == order_1
 
     def test_the_default_quantity_for_a_chosen_product_is_1(self, avocado, order_1):
         item = order_1.add_item(avocado)

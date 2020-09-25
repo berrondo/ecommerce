@@ -1,49 +1,45 @@
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, password, **extra_fields):
-        user = self.model(**extra_fields)
-        user.set_password(password)
-        user.staff = True
-        user.save()
-        return user
-
-    def create_customer(self, password, **extra_fields):
-        user = self.create_user(password, **extra_fields)
-        customers_group, _ = Group.objects.get_or_create(name='customers')
-        user.groups.add(customers_group)
-        user.orders.add(Order.objects.create(customer=user))
-        return user
-
-    def create_manager(self, password, **extra_fields):
-        user = self.create_user(password, **extra_fields)
-        managers_group, _ = Group.objects.get_or_create(name='managers')
-        user.groups.add(managers_group)
-        return user
+def set_group_permissions(group):
+    if group.name == 'customers':
+        ...
+        # group.permissions.add(
+        #     can_view_products
+        #     can_view_his_orders
+        #     can_change_his_opened_orders  can_checkout_opened_orders
+        #     can_delete_his_opened_orders
+        # )
+    if group.name == 'managers':
+        ...
+        # group.permissions.add(
+        #     can_*_products
+        #     can_view_orders
+        #     can_dispatch_opened_orders
+        # )
+    return group
 
 
 class User(User):
-    objects = UserManager()
+    ...
 
-    def is_customer(self):
-        group_customers = self.groups.filter(name='customers')
-        return group_customers.count() == 1
 
-    def is_manager(self):
-        group_managers = self.groups.filter(name='managers')
-        return group_managers.count() == 1
-
-    def get_opened_order(self):
-        if self.is_customer():
-            opened_order, _ = Order.objects.get_or_create(
-                customer=self,
-                status=Order.OrderStatus.OPENED)
-            return opened_order
+def create_user(username, password, in_group='customers'):
+    user, _ = User.objects.get_or_create(username=username)
+    user.set_password(password)
+    user.is_staff = True  # can use django admin
+    user.save()
+    group, created = Group.objects.get_or_create(name=in_group)
+    if created:
+        set_group_permissions(group)
+    user.groups.add(group)
+    if group.name == 'customers':
+        user.orders.add(Order.objects.create(customer=user))
+    user.save()
+    return user
 
 
 class Order(models.Model):
@@ -149,3 +145,44 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'Inclusão em {self.order} de {self.quantity} {self.product}'
+
+
+# class UserManager(BaseUserManager):
+#     def create_user(self, password, **extra_fields):
+#         user = self.model(**extra_fields)
+#         user.set_password(password)
+#         user.staff = True
+#         user.save()
+#         return user
+#
+#     def create_customer(self, password, **extra_fields):
+#         user = self.create_user(password, **extra_fields)
+#         customers_group, created = Group.objects.get_or_create(name='customers')
+#         if created:
+#             set_customers_group_permissions(customers_group)
+#         user.groups.add(customers_group)
+#         user.orders.add(Order.objects.create(customer=user))
+#         return user
+#
+#     def create_manager(self, password, **extra_fields):
+#         user = self.create_user(password, **extra_fields)
+#         managers_group, created = Group.objects.get_or_create(name='managers')
+#         if created:
+#             set_managers_group_permissions(managers_group)
+#         user.groups.add(managers_group)
+#         return user
+
+    # def is_customer(self):
+    #     group_customers = self.groups.filter(name='customers')
+    #     return group_customers.count() == 1
+
+    # def is_manager(self):
+    #     group_managers = self.groups.filter(name='managers')
+    #     return group_managers.count() == 1
+
+    # def get_opened_order(self):
+    #     if self.is_customer():
+    #         opened_order, _ = Order.objects.get_or_create(
+    #             customer=self,
+    #             status=Order.OrderStatus.OPENED)
+    #         return opened_order

@@ -12,9 +12,14 @@ router.register(r'products', views.ProductViewSet)
 
 
 urlpatterns = [
-    path('', views.Shop.as_view(), name='index'),
-    path('orders/', views.OrderView.as_view(), name='orders'),
-    path('products/', views.ProductView.as_view(), name='products'),
+    path('', views.IndexView.as_view(),
+         name='index'),
+    path('orders/', views.OrderView.as_view(),
+         name='orders'),
+    path('orders/<slug:to_status>/<int:pk>/', views.OrderStatusView.as_view(),
+         name='order-status'),
+    path('products/', views.ProductView.as_view(),
+         name='products'),
 
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),

@@ -8,21 +8,28 @@
 <ol>
 {% for order in orders %}
     {% for item in order.items.all %}
-    <form method="post" action="{% url 'index' %}">{% csrf_token %}
-        <li><input type="text" name="name" value="{{ item.product.name }}" disabled>
+    <form method="post" action="{% url 'index' %}">
+        {% csrf_token %}
+        <li>
+            <input type="text" name="name" value="{{ item.product.name }}" disabled>
             $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>
             x <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
             = <input type="text" name="price" value="{{ item.sub_total }}" style="width:50px" disabled>
             <input type="hidden" name="item_id" value="{{ item.id }}">
-            <input type="submit" name="todo" value="alterar"> ou <input type="submit" name="todo" value="excluir">
+            <input type="submit" name="todo" value="alterar">
+            ou <input type="submit" name="todo" value="excluir">
         </li>
     </form>
         {% if order and forloop.last %}
           <p>
-            <form method="post" action="{% url 'orders' %}">{% csrf_token %}
+            <form method="post" action="{% url 'orders' %}">
+                {% csrf_token %}
                 valor total da compra: <strong>$ {{ order.total }}</strong>
 {#                $ valor total da compra: <input type="text" name="price" value="{{ order.total }}" style="width:50px" disabled>#}
                 <input type="submit" name="todo" value="esvaziar carrinho">
+            </form>
+            <form method="post" action="{% url 'order-status' 'pending' order.pk %}">
+                {% csrf_token %}
                 <input type="submit" name="todo" value="fechar pedido">
             </form>
           </p>
@@ -41,7 +48,10 @@
     <ol>
     {% for product in products %}
         <form method="post" action="{% url 'orders' %}">{% csrf_token %}
-            <li><input type="text" name="name" value="{{ product.name }}" disabled> $ <input type="text" name="price" value="{{ product.price }}" style="width:50px" disabled><input type="number" name="quantity" value="1" min="1" style="width:50px">
+            <li>
+                <input type="text" name="name" value="{{ product.name }}" disabled>
+                $ <input type="text" name="price" value="{{ product.price }}" style="width:50px" disabled>
+                <input type="number" name="quantity" value="1" min="1" style="width:50px">
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="submit" name="todo" value="comprar">
             </li>

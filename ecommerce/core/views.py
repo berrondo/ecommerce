@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
 from rest_framework import viewsets
 
@@ -56,16 +56,14 @@ def get_context(request, msgs=None):
     }
 
 
-class Shop(generic.View):
-    @staticmethod
-    def get(request, **kwargs):
+class IndexView(generic.View):
+    def get(self, request, **kwargs):
         if user := get_user(request):
             if in_group(user, 'managers'):
                 return redirect('products')
         return render(request, 'core/index.html', get_context(request))
 
-    @staticmethod
-    def post(request, **kwargs):
+    def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
             order = get_opened_order(request)
             item_id = int(data.get('item_id', 0))
@@ -74,12 +72,37 @@ class Shop(generic.View):
 
             todo = data.get('todo', '') if quantity else 'excluir'
 
+            # customers...
             if todo == 'alterar':
                 item.quantity = quantity
                 item.save()
 
+            # customers...
             if todo == 'excluir':
                 item.delete()
+
+        return redirect('index')
+
+
+class OrderStatusView(generic.View):
+    model = Order
+
+    def post(self, request, *args, **kwargs):
+        to_status = kwargs.get('to_status')
+        order = get_object_or_404(Order, pk=kwargs.get('pk'))
+
+        # customers...
+        if to_status == 'pending':
+            try:
+                order.checkout()
+            except ValidationError as e:
+                return render(request, 'core/index.html', get_context(request, msgs=[e.message]))
+
+        # managers...
+        elif to_status == 'dispatched':
+            order.status = Order.OrderStatus.SHIPPED
+            order.save()
+            return redirect('products')
 
         return redirect('index')
 
@@ -101,6 +124,7 @@ class OrderView(generic.ListView):
             order = get_opened_order(request)
 
             if order:
+                # customers...
                 if todo == 'comprar':
                     product_id = int(data.get('product_id', 0))
                     quantity = int(data.get('quantity', 0))
@@ -111,22 +135,10 @@ class OrderView(generic.ListView):
                     except ValidationError as e:
                         return render(request, 'core/index.html', get_context(request, msgs=[e.message]))
 
-                elif todo == 'fechar pedido':
-                    try:
-                        order.checkout()
-                    except ValidationError as e:
-                        return render(request, 'core/index.html', get_context(request, msgs=[e.message]))
-
+                # customers...
                 elif todo == 'esvaziar carrinho':
                     for item in order.items.all():
                         item.delete()
-
-                elif todo == 'despachar':
-                    if order_id := int(data.get('order_id', 0)):
-                        order = Order.objects.get(id=order_id)
-                        order.status = Order.OrderStatus.SHIPPED
-                        order.save()
-                        return redirect('products')
 
         return redirect('index')
 
@@ -146,10 +158,12 @@ class ProductView(generic.ListView):
             form = ProductForm(request.POST)
             todo = data.get('todo', '')
 
+            # managers...
             if todo == 'cadastrar':
                 if form.is_valid():
                     form.save()
 
+            # managers...
             if todo == 'alterar':
                 product_id = int(data.get('product_id', 0) or 0)
                 product = self.model.objects.get(id=product_id)
@@ -157,6 +171,7 @@ class ProductView(generic.ListView):
                 if form.is_valid():
                     form.save()
 
+            # managers...
             if todo == 'excluir':
                 product_id = int(data.get('product_id', 0) or 0)
                 product = self.model.objects.get(id=product_id)

@@ -4,11 +4,11 @@
 <p>pedidos para despachar: (<a href="{% url 'orders' %}">ver todos os pedidos...</a>)</p>
     <ul>
     {% for order in orders %}
-      <li><form method="post" action="{% url 'orders' %}">
+      <li><form method="post" action="{% url 'order-status' 'dispatched' order.pk %}">
           {% csrf_token %}
           Pedido [{{ order.id }}] de {{ order.customer.username|title }}.
           total: <strong>$ {{ order.total }}</strong> :: {{ order.get_status_display }} ---
-          <input type="hidden" name="order_id" value="{{ order.id }}">
+{#          <input type="hidden" name="pk" value="{{ order.pk }}">#}
           <input type="submit" name="todo" value="despachar">
       </form>
         <ul>

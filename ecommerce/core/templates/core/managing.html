@@ -32,8 +32,8 @@
     {% for product in products %}
     <form method="post" action="{% url 'products' %}">
         {% csrf_token %}
-        <li><input type="text" name="name" value="{{ product.name }}">
-            $ <input type="text" name="price" value="{{ product.price }}" style="width:50px">
+        <li>
+            {{ product.form_ }}
             <input type="hidden" name="product_id" value="{{ product.id }}">
             <input type="submit" name="todo" value="alterar">
             ou <input type="submit" name="todo" value="excluir">
@@ -49,8 +49,7 @@
 <ul>
 <form method="post" action="{% url 'products' %}">
     {% csrf_token %}
-  <li><input type="text" name="name" value="nome">
-      $ <input type="text" name="price" value="preço" style="width:50px">
+    {{ form }}
      <input type="submit" name="todo" value="cadastrar">
   </li>
 </form>

@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
 from rest_framework import viewsets
 
+from .forms import ProductForm
 from .models import User, Product, Order
 from .serializers import OrderSerializer, ProductSerializer
 
@@ -50,7 +51,7 @@ class Shop(generic.View):
         if user := get_user(request):
             try:
                 if user.is_manager():
-                    return redirect('managing')
+                    return redirect('products')
             except AttributeError:
                 ...
 
@@ -74,10 +75,6 @@ class Shop(generic.View):
                 item.delete()
 
         return redirect('index')
-
-
-def managing(request):
-    return render(request, 'core/managing.html', context(request))
 
 
 class OrderView(generic.ListView):
@@ -131,27 +128,34 @@ class OrderView(generic.ListView):
 class ProductView(generic.ListView):
     model = Product
 
+    def get(self, request, *args, **kwargs):
+        ctx = context(request)
+        for p in ctx['products']:
+            p.form_ = ProductForm(instance=p)
+        ctx['form'] = ProductForm()
+        return render(request, 'core/managing.html', ctx)
+
     def post(self, request, *args, **kwargs):
-        if compra := request.POST.dict():
-            todo = compra.get('todo', '')
-            name = compra.get('name', '')
-            price = float(compra.get('price', '0').replace(',', '.'))
-            product_id = int(compra.get('product_id', 0))
+        if data := request.POST.dict():
+            form = ProductForm(request.POST)
+            todo = data.get('todo', '')
 
             if todo == 'cadastrar':
-                self.model.objects.create(name=name, price=price)
+                if form.is_valid():
+                    form.save()
 
             if todo == 'alterar':
-                product = self.model.objects.get(id=product_id)
-                product.name = name
-                product.price = price
-                product.save()
+                product_id = int(data.get('product_id', 0) or 0)
+                form.instance = self.model.objects.get(id=product_id)
+                if form.is_valid():
+                    form.save()
 
             if todo == 'excluir':
+                product_id = int(data.get('product_id', 0) or 0)
                 product = self.model.objects.get(id=product_id)
                 product.delete()
 
-        return render(request, 'core/managing.html', context(request))
+        return redirect('products')
 
 
 class OrderViewSet(viewsets.ModelViewSet):

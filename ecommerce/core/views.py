@@ -21,20 +21,13 @@ def get_user(request):
 
 
 def get_opened_order(request):
+    opened_order = Order.objects.none()
     if user := get_user(request):
         if hasattr(user, 'orders'):
             opened_order, _ = Order.objects.get_or_create(
                 customer=user,
                 status=Order.OrderStatus.OPENED)
-            return opened_order
-
-
-def get_orders(request, user):
-    if in_group(user, 'customers'):
-        return [get_opened_order(request)]
-    elif in_group(user, 'managers'):
-        return Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all()
-    return []
+    return opened_order
 
 
 def in_group(user, group_name):
@@ -42,68 +35,83 @@ def in_group(user, group_name):
         return user.groups.filter(name=group_name).exists()
 
 
-def user_in_group(request, group_name):
-    user = get_user(request)
-    if in_group(user, group_name):
-        return user
-    return False
-
-
-def get_context(request, msgs=None):
-    return {
+def get_customer_context(request):
+    opened_order = get_opened_order(request)
+    context = {
         'products': Product.objects.all(),
-        'orders': get_orders(request, get_user(request)),
-        'opened_order': get_opened_order(request),
-        'msgs': msgs or [],
+        'orders': [opened_order],
+        'opened_order': opened_order,
+        'msgs': [],
     }
+    return context
 
 
 def index(request):
     if user := get_user(request):
         if in_group(user, 'managers'):
             return redirect('product')
-    return render(request, 'core/index.html', get_context(request))
+
+    return render(request, 'core/index.html', get_customer_context(request))
 
 
 class OrderView(generic.ListView):
     model = Order
 
-    def get(self, request, *args, **kwargs):
-        if user := user_in_group(request, 'customers'):
-            self.queryset = Order.objects.filter(customer=user).all()
-        elif not user_in_group(request, 'managers'):
-            self.queryset = Order.objects.none()
-        return super().get(request, args, kwargs)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if user := get_user(self.request):
+            if in_group(user, 'customers'):
+                queryset = self.model.objects.filter(customer=user).all()
+
+            elif not in_group(user, 'managers'):
+                queryset = self.model.objects.none()
+
+        return queryset
 
 
-class OrderStatusView(generic.View):
+class _OrderCrudMixin:
     model = Order
+    template_name = 'core/index.html'
+    msgs = []
 
+    # def __init__(self, **kwargs):
+    #     super().__init__(kwargs)
+    #     self.msgs = []
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            get_customer_context(self.request)
+        )
+        return context
+
+
+class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
     def post(self, request, *args, **kwargs):
         to_status = kwargs.get('to_status')
-        order = get_object_or_404(Order, pk=kwargs.get('pk'))
+        order = get_object_or_404(self.model, pk=kwargs.get('pk'))
 
         # customers...
         if to_status == 'pending':
             try:
                 order.checkout()
             except ValidationError as e:
-                return render(request, 'core/index.html',
-                              get_context(request, msgs=[e.message]))
+                self.msgs.append(e.message)
 
         # managers...
         elif to_status == 'dispatched':
-            order.status = Order.OrderStatus.SHIPPED
+            order.status = self.model.OrderStatus.SHIPPED
             order.save()
             return redirect('product')
 
         return redirect('index')
 
 
-class OrderUpdateView(generic.View):
+class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
-            order = get_object_or_404(Order, pk=int(kwargs.get('pk', 0) or 0))
+            order = get_object_or_404(self.model, pk=kwargs.get('pk', 0))
             quantity = int(data.get('quantity', 0))
 
             todo = data.get('todo', '')
@@ -116,8 +124,7 @@ class OrderUpdateView(generic.View):
                 try:
                     order.add_item(product, quantity)
                 except ValidationError as e:
-                    return render(request, 'core/index.html',
-                                  get_context(request, msgs=[e.message]))
+                    self.msgs.append(e.message)
 
             # customers...
             elif todo == 'esvaziar carrinho':
@@ -128,9 +135,11 @@ class OrderUpdateView(generic.View):
 
 
 class OrderItemUpdateView(generic.UpdateView):
+    model = Order
+
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
-            order = get_object_or_404(Order, pk=kwargs.get('order_pk', 0))
+            order = get_object_or_404(self.model, pk=kwargs.get('order_pk', 0))
             item = order.items.get(id=kwargs.get('item_pk', 0))
 
             quantity = int(data.get('quantity', 0))
@@ -153,13 +162,20 @@ class OrderIndexDeleteView(generic.edit.DeleteView):
 
 class ProductView(generic.ListView):
     model = Product
+    template_name = 'core/managing.html'
 
-    def get(self, request, *args, **kwargs):
-        ctx = get_context(request)
-        for p in ctx['products']:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        products = Product.objects.all()
+        for p in products:
             p.form_ = ProductForm(instance=p)
-        ctx['form'] = ProductForm()
-        return render(request, 'core/managing.html', ctx)
+        context.update({
+            'form': ProductForm(),
+            'products': products,
+            'orders': Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all(),
+            # 'msgs': msgs or [],
+        })
+        return context
 
 
 class _ProductCrudMixin:

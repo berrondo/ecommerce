@@ -8,7 +8,6 @@
           {% csrf_token %}
           Pedido [{{ order.pk }}] de {{ order.customer.username|title }}.
           total: <strong>$ {{ order.total }}</strong> :: {{ order.get_status_display }} ---
-{#          <input type="hidden" name="pk" value="{{ order.pk }}">#}
           <input type="submit" name="todo" value="despachar">
       </form>
         <ul>
@@ -34,7 +33,6 @@
         {% csrf_token %}
         <li>
             {{ product.form_ }}
-{#            <input type="hidden" name="product_id" value="{{ product.pk }}">#}
             <input type="submit" name="todo" value="alterar">
         </li>
     </form>

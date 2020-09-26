@@ -14,7 +14,6 @@
             $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>
             x <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
             = <input type="text" name="sub_total" value="{{ item.sub_total }}" style="width:50px" disabled>
-{#            <input type="hidden" name="item_id" value="{{ item.pk }}">#}
             <input type="submit" name="todo" value="alterar">
         </li>
     </form>
@@ -32,7 +31,6 @@
     <form method="post" action="{% url 'order-update' opened_order.pk %}">
         {% csrf_token %}
         valor total da compra: <strong>$ {{ opened_order.total }}</strong>
-{#      $ valor total da compra: <input type="text" name="price" value="{{ opened_order.total }}" style="width:50px" disabled>#}
         <input type="submit" name="todo" value="esvaziar carrinho">
     </form>
     <form method="post" action="{% url 'order-status' 'pending' opened_order.pk %}">

@@ -84,6 +84,7 @@ class _OrderCrudMixin:
         context.update(
             get_customer_context(self.request)
         )
+        context['msgs'] = self.msgs
         return context
 
 

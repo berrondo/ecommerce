@@ -1,4 +1,13 @@
+import pytest
+
 from django.urls import reverse
+
+
+@pytest.fixture()
+def _response(client, order_1, an_order):
+    client.login(username='bob', password='12345')
+    response = client.post(reverse('order-update', args=[order_1.pk]), data=an_order)
+    return response
 
 
 class TestViewIndex:
@@ -14,45 +23,33 @@ class TestViewIndex:
         response = client.get(reverse('index'))
         assert response.status_code == 200
 
-    def test_post(self, client, a_customer, an_order):
-        client.login(username='bob', password='12345')
-        response = client.post(reverse('orders'), data=an_order)
-
-        assert response.status_code == 302
+    def test_post(self,  a_customer, _response):
+        assert _response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 1
 
-    def test_post_the_same_product_twice(self, client, a_customer, an_order):
-        client.login(username='bob', password='12345')
-        response = client.post(reverse('orders'), data=an_order)
-
-        assert response.status_code == 302
+    def test_post_the_same_product_twice(self, client, a_customer, order_1, an_order, _response):
+        assert _response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 1
 
         # again...
-        response = client.post(reverse('orders'), data=an_order)
+        response = client.post(reverse('order-update', args=[order_1.pk]), data=an_order)
         assert response.status_code == 200
         assert "existe" in str(response.content)
 
-    def test_delete_via_post(self, client, a_customer, an_order):
-        client.login(username='bob', password='12345')
-        response = client.post(reverse('orders'), data=an_order)
-
-        assert response.status_code == 302
+    def test_delete_via_post(self, client, a_customer, order_1, _response):
+        assert _response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 1
 
         an_item = {
                 "item_id": a_customer.orders.first().items.first().id,
                 "todo": 'excluir',
         }
-        response = client.post(reverse('index'), data=an_item)
+        response = client.post(reverse('order-item-update', args=[order_1.pk, an_item['item_id']]), data=an_item)
         assert response.status_code == 302
         assert not a_customer.orders.first().items.exists()
 
-    def test_patch_via_post(self, client, a_customer, an_order):
-        client.login(username='bob', password='12345')
-        response = client.post(reverse('orders'), data=an_order)
-
-        assert response.status_code == 302
+    def test_patch_via_post(self, client, a_customer, order_1, _response):
+        assert _response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 1
 
         an_item = {
@@ -60,15 +57,12 @@ class TestViewIndex:
                 "quantity": 7,
                 "todo": 'alterar',
         }
-        response = client.post(reverse('index'), data=an_item)
+        response = client.post(reverse('order-item-update', args=[order_1.pk, an_item['item_id']]), data=an_item)
         assert response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 7
 
-    def test_patch_via_post_with_quantity_equals_zero_is_equivalent_to_delete(self, client, a_customer, an_order):
-        client.login(username='bob', password='12345')
-        response = client.post(reverse('orders'), data=an_order)
-
-        assert response.status_code == 302
+    def test_patch_via_post_with_quantity_equals_zero_is_equivalent_to_delete(self, client, a_customer, order_1, _response):
+        assert _response.status_code == 302
         assert a_customer.orders.first().items.first().quantity == 1
 
         an_item = {
@@ -76,14 +70,7 @@ class TestViewIndex:
                 "quantity": 0,
                 "todo": 'alterar',
         }
-        response = client.post(reverse('index'), data=an_item)
+        response = client.post(reverse('order-item-update', args=[order_1.pk, an_item['item_id']]), data=an_item)
         assert response.status_code == 302
         assert not a_customer.orders.first().items.exists()
 
-    # def test_user_has_opened_order(self, client, an_order, order_1):
-    #     client.login(username='bob', password='12345')
-    #
-    #     response = client.post(reverse('orders'), data=an_order)
-    #
-    #     from ..views import get_opened_order
-    #     assert get_opened_order(response) == order_1

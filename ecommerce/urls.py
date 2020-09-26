@@ -12,14 +12,28 @@ router.register(r'products', views.ProductViewSet)
 
 
 urlpatterns = [
-    path('', views.IndexView.as_view(),
-         name='index'),
-    path('orders/', views.OrderView.as_view(),
-         name='orders'),
-    path('orders/<slug:to_status>/<int:pk>/', views.OrderStatusView.as_view(),
-         name='order-status'),
-    path('products/', views.ProductView.as_view(),
-         name='products'),
+    path('', views.index, name='index'),
+
+    path('orders/',
+         views.OrderView.as_view(), name='order'),
+    path('orders/<int:pk>/',
+         views.OrderUpdateView.as_view(), name='order-update'),
+    path('orders/<slug:to_status>/<int:pk>/',
+         views.OrderStatusView.as_view(), name='order-status'),
+
+    path('orders/<int:order_pk>/items/<int:item_pk>',
+         views.OrderItemUpdateView.as_view(), name='order-item-update'),
+    path('orders/<int:order_pk>/items/<int:item_pk>/delete',
+         views.OrderIndexDeleteView.as_view(), name='order-item-delete'),
+
+    path('products/',
+         views.ProductView.as_view(), name='product'),
+    path('products/add',
+         views.ProductCreateView.as_view(), name='product-create'),
+    path('products/<int:pk>',
+         views.ProductUpdateView.as_view(), name='product-update'),
+    path('products/<int:pk>/delete',
+         views.ProductDeleteView.as_view(), name='product-delete'),
 
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),

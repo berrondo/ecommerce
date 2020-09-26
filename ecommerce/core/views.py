@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse_lazy
 from django.views import generic
 from rest_framework import viewsets
 
@@ -52,36 +53,27 @@ def get_context(request, msgs=None):
     return {
         'products': Product.objects.all(),
         'orders': get_orders(request, get_user(request)),
+        'opened_order': get_opened_order(request),
         'msgs': msgs or [],
     }
 
 
-class IndexView(generic.View):
-    def get(self, request, **kwargs):
-        if user := get_user(request):
-            if in_group(user, 'managers'):
-                return redirect('products')
-        return render(request, 'core/index.html', get_context(request))
+def index(request):
+    if user := get_user(request):
+        if in_group(user, 'managers'):
+            return redirect('product')
+    return render(request, 'core/index.html', get_context(request))
 
-    def post(self, request, *args, **kwargs):
-        if data := request.POST.dict():
-            order = get_opened_order(request)
-            item_id = int(data.get('item_id', 0))
-            item = order.items.get(id=item_id)
-            quantity = int(data.get('quantity', 0))
 
-            todo = data.get('todo', '') if quantity else 'excluir'
+class OrderView(generic.ListView):
+    model = Order
 
-            # customers...
-            if todo == 'alterar':
-                item.quantity = quantity
-                item.save()
-
-            # customers...
-            if todo == 'excluir':
-                item.delete()
-
-        return redirect('index')
+    def get(self, request, *args, **kwargs):
+        if user := user_in_group(request, 'customers'):
+            self.queryset = Order.objects.filter(customer=user).all()
+        elif not user_in_group(request, 'managers'):
+            self.queryset = Order.objects.none()
+        return super().get(request, args, kwargs)
 
 
 class OrderStatusView(generic.View):
@@ -96,51 +88,67 @@ class OrderStatusView(generic.View):
             try:
                 order.checkout()
             except ValidationError as e:
-                return render(request, 'core/index.html', get_context(request, msgs=[e.message]))
+                return render(request, 'core/index.html',
+                              get_context(request, msgs=[e.message]))
 
         # managers...
         elif to_status == 'dispatched':
             order.status = Order.OrderStatus.SHIPPED
             order.save()
-            return redirect('products')
+            return redirect('product')
 
         return redirect('index')
 
 
-class OrderView(generic.ListView):
-    model = Order
-
-    def get(self, request, *args, **kwargs):
-        if user := user_in_group(request, 'customers'):
-            self.queryset = Order.objects.filter(customer=user).all()
-        elif not user_in_group(request, 'managers'):
-            self.queryset = Order.objects.none()
-        return super().get(request, args, kwargs)
-
-    @staticmethod
-    def post(request, *args, **kwargs):
+class OrderUpdateView(generic.View):
+    def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
+            order = get_object_or_404(Order, pk=int(kwargs.get('pk', 0) or 0))
+            quantity = int(data.get('quantity', 0))
+
             todo = data.get('todo', '')
-            order = get_opened_order(request)
 
-            if order:
-                # customers...
-                if todo == 'comprar':
-                    product_id = int(data.get('product_id', 0))
-                    quantity = int(data.get('quantity', 0))
-                    product = Product.objects.get(id=product_id)
+            # customers...
+            if todo == 'comprar':
+                product_id = int(data.get('product_id', 0))
+                product = Product.objects.get(id=product_id)
 
-                    try:
-                        order.add_item(product, quantity)
-                    except ValidationError as e:
-                        return render(request, 'core/index.html', get_context(request, msgs=[e.message]))
+                try:
+                    order.add_item(product, quantity)
+                except ValidationError as e:
+                    return render(request, 'core/index.html',
+                                  get_context(request, msgs=[e.message]))
 
-                # customers...
-                elif todo == 'esvaziar carrinho':
-                    for item in order.items.all():
-                        item.delete()
+            # customers...
+            elif todo == 'esvaziar carrinho':
+                for item in order.items.all():
+                    item.delete()
 
         return redirect('index')
+
+
+class OrderItemUpdateView(generic.UpdateView):
+    def post(self, request, *args, **kwargs):
+        if data := request.POST.dict():
+            order = get_object_or_404(Order, pk=kwargs.get('order_pk', 0))
+            item = order.items.get(id=kwargs.get('item_pk', 0))
+
+            quantity = int(data.get('quantity', 0))
+
+            # customers...
+            if not quantity:
+                item.delete()
+
+            # customers...
+            else:
+                item.quantity = quantity
+                item.save()
+
+        return redirect('index')
+
+
+class OrderIndexDeleteView(generic.edit.DeleteView):
+    model = Product
 
 
 class ProductView(generic.ListView):
@@ -153,31 +161,24 @@ class ProductView(generic.ListView):
         ctx['form'] = ProductForm()
         return render(request, 'core/managing.html', ctx)
 
-    def post(self, request, *args, **kwargs):
-        if data := request.POST.dict():
-            form = ProductForm(request.POST)
-            todo = data.get('todo', '')
 
-            # managers...
-            if todo == 'cadastrar':
-                if form.is_valid():
-                    form.save()
+class _ProductCrudMixin:
+    model = Product
+    fields = ['name', 'price']
+    template_name = 'core/managing.html'
+    success_url = reverse_lazy('product')
 
-            # managers...
-            if todo == 'alterar':
-                product_id = int(data.get('product_id', 0) or 0)
-                product = self.model.objects.get(id=product_id)
-                form.instance = product
-                if form.is_valid():
-                    form.save()
 
-            # managers...
-            if todo == 'excluir':
-                product_id = int(data.get('product_id', 0) or 0)
-                product = self.model.objects.get(id=product_id)
-                product.delete()
+class ProductCreateView(_ProductCrudMixin, generic.edit.CreateView):
+    ...
 
-        return redirect('products')
+
+class ProductUpdateView(_ProductCrudMixin, generic.edit.UpdateView):
+    ...
+
+
+class ProductDeleteView(_ProductCrudMixin, generic.edit.DeleteView):
+    ...
 
 
 class OrderViewSet(viewsets.ModelViewSet):

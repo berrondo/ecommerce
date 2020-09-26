@@ -1,12 +1,12 @@
 {% extends 'base_manager.html' %}
 
 {% block orders %}
-<p>pedidos para despachar: (<a href="{% url 'orders' %}">ver todos os pedidos...</a>)</p>
+<p>pedidos para despachar: (<a href="{% url 'order' %}">ver todos os pedidos...</a>)</p>
     <ul>
     {% for order in orders %}
       <li><form method="post" action="{% url 'order-status' 'dispatched' order.pk %}">
           {% csrf_token %}
-          Pedido [{{ order.id }}] de {{ order.customer.username|title }}.
+          Pedido [{{ order.pk }}] de {{ order.customer.username|title }}.
           total: <strong>$ {{ order.total }}</strong> :: {{ order.get_status_display }} ---
 {#          <input type="hidden" name="pk" value="{{ order.pk }}">#}
           <input type="submit" name="todo" value="despachar">
@@ -30,14 +30,17 @@
 <p>produtos em estoque:</p>
     <ol>
     {% for product in products %}
-    <form method="post" action="{% url 'products' %}">
+    <form method="post" action="{% url 'product-update' product.pk %}">
         {% csrf_token %}
         <li>
             {{ product.form_ }}
-            <input type="hidden" name="product_id" value="{{ product.id }}">
+{#            <input type="hidden" name="product_id" value="{{ product.pk }}">#}
             <input type="submit" name="todo" value="alterar">
-            ou <input type="submit" name="todo" value="excluir">
         </li>
+    </form>
+    <form method="post" action="{% url 'product-delete' product.pk %}">
+        {% csrf_token %}
+        ou <input type="submit" name="todo" value="excluir">
     </form>
     {% endfor %}
     </ol>
@@ -47,7 +50,7 @@
 <hr />
 <p>cadastrar produto</p>
 <ul>
-<form method="post" action="{% url 'products' %}">
+<form method="post" action="{% url 'product-create' %}">
     {% csrf_token %}
     {{ form }}
      <input type="submit" name="todo" value="cadastrar">

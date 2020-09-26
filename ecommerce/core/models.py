@@ -73,7 +73,6 @@ class Order(models.Model):
             return self.remove_item(product)
         
         item, created = self.items.get_or_create(order=self, product=product)
-
         if not created:
             raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu carrinho")
 
@@ -141,44 +140,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'Inclusão em {self.order} de {self.quantity} {self.product}'
-
-
-# class UserManager(BaseUserManager):
-#     def create_user(self, password, **extra_fields):
-#         user = self.model(**extra_fields)
-#         user.set_password(password)
-#         user.staff = True
-#         user.save()
-#         return user
-#
-#     def create_customer(self, password, **extra_fields):
-#         user = self.create_user(password, **extra_fields)
-#         customers_group, created = Group.objects.get_or_create(name='customers')
-#         if created:
-#             set_customers_group_permissions(customers_group)
-#         user.groups.add(customers_group)
-#         user.orders.add(Order.objects.create(customer=user))
-#         return user
-#
-#     def create_manager(self, password, **extra_fields):
-#         user = self.create_user(password, **extra_fields)
-#         managers_group, created = Group.objects.get_or_create(name='managers')
-#         if created:
-#             set_managers_group_permissions(managers_group)
-#         user.groups.add(managers_group)
-#         return user
-
-    # def is_customer(self):
-    #     group_customers = self.groups.filter(name='customers')
-    #     return group_customers.count() == 1
-
-    # def is_manager(self):
-    #     group_managers = self.groups.filter(name='managers')
-    #     return group_managers.count() == 1
-
-    # def get_opened_order(self):
-    #     if self.is_customer():
-    #         opened_order, _ = Order.objects.get_or_create(
-    #             customer=self,
-    #             status=Order.OrderStatus.OPENED)
-    #         return opened_order

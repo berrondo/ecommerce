@@ -40,7 +40,7 @@ def create_user(username, password, in_group='customers'):
 
 class Order(models.Model):
     customer = models.ForeignKey('auth.User', related_name='orders', on_delete=models.CASCADE)
-    content = models.ManyToManyField('Product', through='OrderItem', blank=True)
+    products = models.ManyToManyField('Product', through='OrderItem', blank=True)
 
     @property
     def total(self):
@@ -102,7 +102,7 @@ class Order(models.Model):
         return self
 
     def _nust_be_an_non_empty_order(self):
-        if self.content.count() == 0:
+        if self.products.count() == 0:
             raise ValidationError("The Order is empty!")
 
     def _must_be_an_opened_order(self):

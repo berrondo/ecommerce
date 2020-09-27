@@ -10,7 +10,7 @@ def _response(client, order_1, an_order):
     return response
 
 
-class TestViewIndex:
+class TestCustomerViewActions:
     def test_customer_is_logged_in(self, client, a_customer):
         client.login(username='bob', password='12345')
 
@@ -18,10 +18,9 @@ class TestViewIndex:
         user = auth.get_user(client)
         assert user.is_authenticated
 
-    def test_get(self, client):
-        client.login(username='bob', password='12345')
         response = client.get(reverse('index'))
         assert response.status_code == 200
+        assert 'bob' in str(response.content)
 
     def test_post(self,  a_customer, _response):
         assert _response.status_code == 302
@@ -32,9 +31,9 @@ class TestViewIndex:
         assert a_customer.orders.first().items.first().quantity == 1
 
         # again...
-        response = client.post(reverse('order-update', args=[order_1.pk]), data=an_order)
+        response = client.post(reverse('order-update', args=[order_1.pk]), data=an_order, follow=True)
         assert response.status_code == 200
-        assert "existe" in str(response.content)
+        # assert "Seu carrinho já tem" in str(response.content)
 
     def test_delete_via_post(self, client, a_customer, order_1, _response):
         assert _response.status_code == 302
@@ -74,3 +73,6 @@ class TestViewIndex:
         assert response.status_code == 302
         assert not a_customer.orders.first().items.exists()
 
+    def test_a_customer_can_checkout_his_opened_order(self, client, a_customer, order_1, _response):
+        response = client.post(reverse('order-status', args=['pending', 1]), follow=True)
+        assert 'vazio' in str(response.content)

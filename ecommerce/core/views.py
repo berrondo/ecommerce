@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render, get_object_or_404
@@ -54,7 +55,7 @@ def index(request):
     return render(request, 'core/index.html', get_customer_context(request))
 
 
-class OrderView(generic.ListView):
+class OrderView(LoginRequiredMixin, generic.ListView):
     model = Order
 
     def get_queryset(self):
@@ -70,7 +71,7 @@ class OrderView(generic.ListView):
         return queryset
 
 
-class _OrderCrudMixin:
+class _OrderCrudMixin(LoginRequiredMixin):
     model = Order
     template_name = 'core/index.html'
     msgs = []
@@ -135,7 +136,7 @@ class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
         return redirect('index')
 
 
-class OrderItemUpdateView(generic.UpdateView):
+class OrderItemUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Order
 
     def post(self, request, *args, **kwargs):
@@ -157,11 +158,11 @@ class OrderItemUpdateView(generic.UpdateView):
         return redirect('index')
 
 
-class OrderIndexDeleteView(generic.edit.DeleteView):
+class OrderItemDeleteView(LoginRequiredMixin, generic.edit.DeleteView):
     model = Product
 
 
-class ProductView(generic.ListView):
+class ProductView(LoginRequiredMixin, generic.ListView):
     model = Product
     template_name = 'core/managing.html'
 
@@ -179,7 +180,7 @@ class ProductView(generic.ListView):
         return context
 
 
-class _ProductCrudMixin:
+class _ProductCrudMixin(LoginRequiredMixin):
     model = Product
     fields = ['name', 'price']
     template_name = 'core/managing.html'

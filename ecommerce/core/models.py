@@ -7,19 +7,17 @@ from django.utils.translation import gettext_lazy as _
 def set_group_permissions(group):
     if group.name == 'customers':
         ...
-        # group.permissions.add(
+        # group.permissions.add(('customer_permissions', 'Customer Permissions'))
         #     can_view_products
         #     can_view_his_orders
         #     can_change_his_opened_orders  can_checkout_opened_orders
         #     can_delete_his_opened_orders
-        # )
     if group.name == 'managers':
         ...
-        # group.permissions.add(
-        #     ('can__products', ''),
+        # group.permissions.add(('manager_permissions', 'Manager Permissions'))
+        #     ('can__products', '') ,
         #     ('can_view_orders', 'Can view orders'),
         #     ('can_dispatch_opened_orders', 'Can dispatch  opened orders'),
-        # )
     return group
 
 
@@ -74,7 +72,7 @@ class Order(models.Model):
         
         item, created = self.items.get_or_create(order=self, product=product)
         if not created:
-            raise ValidationError(f"Já existe ({item.quantity}) {product.name} em seu carrinho")
+            raise ValidationError(f"Seu carrinho já tem {product.name} ({item.quantity}).")
 
         item.quantity = quantity
         item.price = product.price
@@ -92,7 +90,7 @@ class Order(models.Model):
 
     def checkout(self):
         self._must_be_an_opened_order()
-        self._nust_be_an_non_empty_order()
+        self._must_be_an_non_empty_order()
 
         self.status = self.OrderStatus.TO_BE_SHIPPED
         # for i in self.content.all():
@@ -101,9 +99,18 @@ class Order(models.Model):
         self.save()
         return self
 
-    def _nust_be_an_non_empty_order(self):
+    def delete(self):
+        self._must_be_an_empty_order()
+        self._must_be_an_opened_order()
+        super().delete()
+
+    def _must_be_an_empty_order(self):
+        if self.products.count() > 0:
+            raise ValidationError("The order is not empty!")
+
+    def _must_be_an_non_empty_order(self):
         if self.products.count() == 0:
-            raise ValidationError("The Order is empty!")
+            raise ValidationError("The order is empty!")
 
     def _must_be_an_opened_order(self):
         if self.status != Order.OrderStatus.OPENED:

@@ -33,7 +33,7 @@
         valor total da compra: <strong>$ {{ opened_order.total }}</strong>
         <input type="submit" name="todo" value="esvaziar carrinho">
     </form>
-    <form method="post" action="{% url 'order-status' 'pending' opened_order.pk %}">
+    <form method="post" action="{% url 'order-status-update' opened_order.pk 'pending' %}">
         {% csrf_token %}
         <input type="submit" name="todo" value="fechar pedido">
     </form>

@@ -117,24 +117,27 @@ class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
             order = get_object_or_404(self.model, pk=kwargs.get('pk', 0))
             quantity = int(data.get('quantity', 0))
 
-            todo = data.get('todo', '')
-
             # customers...
-            if todo == 'comprar':
-                product_id = int(data.get('product_id', 0))
-                product = Product.objects.get(id=product_id)
+            product_id = int(data.get('product_id', 0))
+            product = Product.objects.get(id=product_id)
 
-                try:
-                    order.add_item(product, quantity)
-                except ValidationError as e:
-                    self.msgs.append(e.message)
-
-            # customers...
-            elif todo == 'esvaziar carrinho':
-                for item in order.items.all():
-                    item.delete()
+            try:
+                order.add_item(product, quantity)
+            except ValidationError as e:
+                self.msgs.append(e.message)
 
         return redirect('index')
+
+
+class OrderDeleteView(_OrderCrudMixin, generic.DeleteView):
+    success_url = reverse_lazy('index')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        for item in self.object.items.all():
+            item.delete()
+        return HttpResponseRedirect(success_url)
 
 
 class OrderItemUpdateView(LoginRequiredMixin, generic.UpdateView):

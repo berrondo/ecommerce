@@ -26,9 +26,9 @@
     {% endfor %}
 </ol>
 
-{% if opened_order %}
+{% if opened_order.items.count %}
   <p>
-    <form method="post" action="{% url 'order-update' opened_order.pk %}">
+    <form method="post" action="{% url 'order-delete' opened_order.pk %}">
         {% csrf_token %}
         valor total da compra: <strong>$ {{ opened_order.total }}</strong>
         <input type="submit" name="todo" value="esvaziar carrinho">

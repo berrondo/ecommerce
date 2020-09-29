@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -119,7 +122,8 @@ class Order(models.Model):
 
 class Product(models.Model):
     name = models.CharField('nome', max_length=200, unique=True)
-    price = models.DecimalField('preço', max_digits=10, decimal_places=2, default=0)
+    price = models.DecimalField('preço', max_digits=10, decimal_places=2, default=0,
+                                validators=[MinValueValidator(Decimal('0.01'))])
     is_active = models.BooleanField('ativo', default=True)
 
     class Meta:

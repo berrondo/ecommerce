@@ -58,14 +58,14 @@ class TestManagerManagingProducts:
         assert not Product.objects.first().is_active
         assert 'Abacate' in str(response.content)
 
-    def test_a_product_should_not_have_price_lte_zero(self, client_w_manager, register_product):
-        for price in (0, -0.01):
-            new_data = dict(
-                price=price,
-            )
-            response = client_w_manager.post(r('product-update', args=[1]), new_data, follow=True)
-            assert response.status_code == 200
-            assert 'Certifique-se que este valor seja maior ou igual a 0.01.' in str(response.content)
+    @pytest.mark.parametrize('wrong_price', ((0, -0.01),))
+    def test_a_product_should_not_have_price_lte_zero(self, client_w_manager, register_product, wrong_price):
+        new_data = dict(
+            price=wrong_price,
+        )
+        response = client_w_manager.post(r('product-update', args=[1]), new_data, follow=True)
+        assert response.status_code == 200
+        assert 'Certifique-se que este valor seja maior ou igual a 0.01.' in str(response.content)
 
 
 class TestManagerDispatchingOrder:

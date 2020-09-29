@@ -11,12 +11,6 @@ def client_w_manager(client, a_manager):
     return client
 
 
-@pytest.fixture
-def client_w_customer(client, a_customer):
-    client.login(username='bob', password='12345')
-    return client
-
-
 class TestManagerCreationAndLogIn:
     def test_a_manager_is_created_in_the_correct_group(self, a_manager):
         assert a_manager.groups.first().name == 'managers'

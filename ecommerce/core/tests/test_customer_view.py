@@ -16,8 +16,18 @@ class TestCustomerLogIn:
         assert 'bob' in str(response.content)
 
 
+class TestCustomerProductsList:
+    def test_a_customer_can_only_see_to_buy_active_products(self, client_w_customer,
+                                                            avocado, no_active_product):
+        response = client_w_customer.get(r('index'))
+        assert 'bob' in str(response.content)
+        assert 'Abacate' in str(response.content)
+        assert "Uva" not in str(response.content)
+
+
+
 @pytest.fixture()
-def add_item(client, order_1, an_order):
+def add_item(client, an_order):
     client.login(username='bob', password='12345')
     response = client.post(r('order-update', args=[1]), data=an_order, follow=True)
     return response

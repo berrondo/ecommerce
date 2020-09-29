@@ -40,7 +40,7 @@ def in_group(user, group_name):
 def get_customer_context(request):
     opened_order = get_opened_order(request)
     context = {
-        'products': Product.objects.all(),
+        'products': Product.objects.filter(is_active=True).all(),
         'orders': [opened_order],
         'opened_order': opened_order,
         'msgs': [],

@@ -9,8 +9,19 @@ def enable_db_access(db):
 
 
 @pytest.fixture
+def a_manager():
+    return create_user(username='ann', password='54321', in_group='managers')
+
+
+@pytest.fixture
 def a_customer():
     return create_user(username='bob', password='12345')
+
+
+@pytest.fixture
+def client_w_customer(client, a_customer):
+    client.login(username=a_customer.username, password='12345')
+    return client
 
 
 @pytest.fixture
@@ -29,14 +40,14 @@ def an_order(a_customer, avocado):
 
 @pytest.fixture
 def avocado():
-    return Product.objects.create(name='Abacate', price=1.0)  
-
-
-@pytest.fixture
-def a_manager():
-    return create_user(username='ann', password='54321', in_group='managers')
+    return Product.objects.create(name='Abacate', price=1.0)
 
 
 @pytest.fixture
 def banana():
-    return Product.objects.create(name='Banana', price=2.0)  
+    return Product.objects.create(name='Banana', price=2.0)
+
+
+@pytest.fixture
+def no_active_product():
+    return Product.objects.create(name='Uva', price=2.0, is_active=False)

@@ -88,3 +88,17 @@ class TestManagerDispatchingOrder:
         assert response.status_code == 200
         assert Order.objects.get(pk=1).status == Order.OrderStatus.SHIPPED
         assert 'Pendente' not in str(response.content)
+
+    def test_a_manager_can_not_checkout_an_order(self, client_w_customer, an_order, a_manager):
+        client = client_w_customer
+
+        response = client.post(r('order-update', args=[1]), an_order, follow=True)
+        assert 'bob' in str(response.content)
+        assert 'Abacate' in str(response.content)
+
+        client.logout()
+        assert client.login(username=a_manager.username, password='54321')
+
+        response = client.post(r('order-status-update', args=[1, 'pending']), follow=True)
+        assert response.status_code == 403
+        assert Order.objects.get(pk=1).status == Order.OrderStatus.OPENED

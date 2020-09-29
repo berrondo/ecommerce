@@ -1,26 +1,42 @@
 from decimal import Decimal
 
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+class NoModel(models.Model):
+    class Meta:
+        managed = False  # No database table creation or deletion  \
+        # operations will be performed for this model.
+
+        default_permissions = ()  # disable "add", "change", "delete"
+        # and "view" default permissions
+
+        permissions = (
+            ('can_checkout_opened_orders', 'Can checkout opened orders'),
+            ('can_dispatch_pending_orders', 'Can dispatch pending orders'),
+        )
+
+
 def set_group_permissions(group):
     if group.name == 'customers':
-        ...
-        # group.permissions.add(('customer_permissions', 'Customer Permissions'))
-        #     can_view_products
-        #     can_view_his_orders
-        #     can_change_his_opened_orders  can_checkout_opened_orders
-        #     can_delete_his_opened_orders
+        group.permissions.add(
+            #     'can_view_products',
+            #     'can_view_his_orders',
+            #     'can_change_his_opened_orders',
+            #     'can_delete_his_opened_orders',
+            Permission.objects.get(codename='can_checkout_opened_orders'),
+        )
+
     if group.name == 'managers':
-        ...
-        # group.permissions.add(('manager_permissions', 'Manager Permissions'))
-        #     ('can__products', '') ,
-        #     ('can_view_orders', 'Can view orders'),
-        #     ('can_dispatch_opened_orders', 'Can dispatch  opened orders'),
+        group.permissions.add(
+            # 'can__products',
+            # 'can_view_orders',
+            Permission.objects.get(codename='can_dispatch_pending_orders'),
+        )
     return group
 
 

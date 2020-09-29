@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
@@ -97,16 +97,22 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
 
         # customers...
         if to_status == 'pending':
-            try:
-                order.checkout()
-            except ValidationError as e:
-                self.msgs.append(e.message)
+            if request.user.has_perm('core.can_checkout_opened_orders'):
+                try:
+                    order.checkout()
+                except ValidationError as e:
+                    self.msgs.append(e.message)
+            else:
+                return HttpResponseForbidden()
 
         # managers...
         elif to_status == 'dispatched':
-            order.status = self.model.OrderStatus.SHIPPED
-            order.save()
-            return redirect('product')
+            if request.user.has_perm('core.can_dispatch_pending_orders'):
+                order.status = self.model.OrderStatus.SHIPPED
+                order.save()
+                return redirect('product')
+            else:
+                return HttpResponseForbidden()
 
         return redirect('index')
 

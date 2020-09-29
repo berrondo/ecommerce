@@ -35,6 +35,7 @@ def register_product(client_w_manager):
     data = dict(
         name='Abacate',
         price=0.01,
+        is_active=True,
     )
     response = client_w_manager.post(r('product-create'), data, follow=True)
     return response
@@ -44,6 +45,7 @@ class TestManagerManagingProducts:
     def test_a_manager_can_add_a_product(self, register_product):
         assert register_product.status_code == 200
         assert Product.objects.first().name == 'Abacate'
+        assert Product.objects.first().is_active
         assert 'Abacate' in str(register_product.content)
 
     def test_a_manager_can_change_a_product(self, client_w_manager, register_product):
@@ -59,8 +61,8 @@ class TestManagerManagingProducts:
     def test_a_manager_can_delete_a_product(self, client_w_manager, register_product):
         response = client_w_manager.post(r('product-delete', args=[1]), follow=True)
         assert response.status_code == 200
-        assert not Product.objects.exists()
-        assert 'Abacate' not in str(response.content)
+        assert not Product.objects.first().is_active
+        assert 'Abacate' in str(response.content)
 
 
 class TestManagerDispatchingOrder:

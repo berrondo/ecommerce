@@ -120,6 +120,7 @@ class Order(models.Model):
 class Product(models.Model):
     name = models.CharField('nome', max_length=200, unique=True)
     price = models.DecimalField('preço', max_digits=10, decimal_places=2, default=0)
+    is_active = models.BooleanField('ativo', default=True)
 
     class Meta:
         verbose_name = 'produto'

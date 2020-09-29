@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
@@ -182,7 +183,7 @@ class ProductView(LoginRequiredMixin, generic.ListView):
 
 class _ProductCrudMixin(LoginRequiredMixin):
     model = Product
-    fields = ['name', 'price']
+    fields = ['name', 'price', 'is_active']
     template_name = 'core/managing.html'
     success_url = reverse_lazy('product')
 
@@ -196,7 +197,12 @@ class ProductUpdateView(_ProductCrudMixin, generic.edit.UpdateView):
 
 
 class ProductDeleteView(_ProductCrudMixin, generic.edit.DeleteView):
-    ...
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.is_active = False
+        self.object.save()
+        return HttpResponseRedirect(success_url)
 
 
 class OrderViewSet(viewsets.ModelViewSet):

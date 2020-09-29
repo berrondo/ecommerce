@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block orders %}
 <h3>pedidos</h3>
 {#{% for order in object_list %}#}
 {#  <p>({{ order.get_status_display }}) Pedido [{{ order.id }}] de {{ order.customer.username|title }}.#}
@@ -37,3 +40,4 @@
     <p>nenhum pedido...</p>
 {% endfor %}
 </ul>
+{% endblock %}

@@ -159,7 +159,7 @@ class OrderItem(models.Model):
 
     @property
     def sub_total(self):
-        return self.quantity * self.product.price
+        return self.quantity * self.price
 
     class Meta:
         unique_together = ('order', 'product')

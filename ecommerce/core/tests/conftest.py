@@ -1,4 +1,5 @@
 import pytest
+from django.urls import reverse as r
 
 from ..models import create_user, Product
 
@@ -22,6 +23,29 @@ def a_customer():
 def client_w_customer(client, a_customer):
     client.login(username=a_customer.username, password='12345')
     return client
+
+
+@pytest.fixture()
+def add_item(client_w_customer, an_order):
+    response = client_w_customer.post(r('order-update', args=[1]), data=an_order, follow=True)
+    return response
+
+
+@pytest.fixture()
+def client_w_manager(client, a_manager):
+    client.login(username='ann', password='54321')
+    return client
+
+
+@pytest.fixture()
+def register_product(client_w_manager):
+    data = dict(
+        name='Abacate',
+        price=0.01,
+        is_active=True,
+    )
+    response = client_w_manager.post(r('product-create'), data, follow=True)
+    return response
 
 
 @pytest.fixture

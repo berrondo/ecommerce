@@ -12,8 +12,7 @@ class NoModel(models.Model):
         managed = False  # No database table creation or deletion  \
         # operations will be performed for this model.
 
-        default_permissions = ()  # disable "add", "change", "delete"
-        # and "view" default permissions
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
 
         permissions = (
             ('can_checkout_opened_orders', 'Can checkout opened orders'),
@@ -33,7 +32,11 @@ def set_group_permissions(group):
 
     if group.name == 'managers':
         group.permissions.add(
-            # 'can__products',
+            Permission.objects.get(codename='can_manage_product'),
+            # Permission.objects.get(codename='view_product'),
+            # Permission.objects.get(codename='add_product'),
+            # Permission.objects.get(codename='change_product'),
+            # Permission.objects.get(codename='delete_product'),
             # 'can_view_orders',
             Permission.objects.get(codename='can_dispatch_pending_orders'),
         )
@@ -145,6 +148,9 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'produto'
         verbose_name_plural = 'produtos'
+        permissions = (
+            ('can_manage_product', 'Can manage product'),
+        )
 
     def __str__(self):
         return f'{self.name} ({self.price})'

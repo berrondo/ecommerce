@@ -5,12 +5,6 @@ from ..models import Product, Order
 from ..views import in_group
 
 
-@pytest.fixture()
-def client_w_manager(client, a_manager):
-    client.login(username='ann', password='54321')
-    return client
-
-
 class TestManagerCreationAndLogIn:
     def test_a_manager_is_created_in_the_correct_group(self, a_manager):
         assert a_manager.groups.first().name == 'managers'
@@ -22,17 +16,6 @@ class TestManagerCreationAndLogIn:
         from django.contrib import auth
         user = auth.get_user(client)
         assert user.is_authenticated
-
-
-@pytest.fixture()
-def register_product(client_w_manager):
-    data = dict(
-        name='Abacate',
-        price=0.01,
-        is_active=True,
-    )
-    response = client_w_manager.post(r('product-create'), data, follow=True)
-    return response
 
 
 class TestManagerManagingProducts:

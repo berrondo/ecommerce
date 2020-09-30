@@ -2,6 +2,8 @@ import pytest
 
 from django.urls import reverse as r
 
+from ..models import Product
+
 
 class TestCustomerLogIn:
     def test_customer_is_logged_in(self, client, a_customer):
@@ -23,14 +25,6 @@ class TestCustomerProductsList:
         assert 'bob' in str(response.content)
         assert 'Abacate' in str(response.content)
         assert "Uva" not in str(response.content)
-
-
-
-@pytest.fixture()
-def add_item(client, an_order):
-    client.login(username='bob', password='12345')
-    response = client.post(r('order-update', args=[1]), data=an_order, follow=True)
-    return response
 
 
 class TestCustomerAddingToOrder:
@@ -89,3 +83,33 @@ class TestCustomerCheckingOutOrder:
     def test_a_customer_can_checkout_his_opened_order(self, client, a_customer, add_item):
         response = client.post(r('order-status-update', args=[1, 'pending']), follow=True)
         assert 'vazio' in str(response.content)
+
+
+class TestCustomerCantDo:
+    def test_a_customer_can_not_add_product(self, client_w_customer):
+        data = dict(
+            name='Abacate',
+            price=0.01,
+            is_active=True,
+        )
+        response = client_w_customer.post(r('product-create'), data, follow=True)
+        assert 'bob' not in str(response.content)
+        assert not Product.objects.exists()
+        assert response.status_code == 403
+
+    def test_a_customer_can_not_edit_product(self, register_product, client_w_customer):
+        data = dict(
+            name='Abacateeeeeeeeeeeeeeeeeeee',
+            price=0.01,
+            is_active=True,
+        )
+        response = client_w_customer.post(r('product-update', args=[1]), data, follow=True)
+        assert 'bob' not in str(response.content)
+        assert Product.objects.first().name == 'Abacate'
+        assert response.status_code == 403
+
+    def test_a_customer_can_not_delete_product(self, register_product, client_w_customer):
+        response = client_w_customer.post(r('product-delete', args=[1]), follow=True)
+        assert 'bob' not in str(response.content)
+        assert Product.objects.exists()
+        assert response.status_code == 403

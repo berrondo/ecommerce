@@ -1,6 +1,6 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
@@ -97,13 +97,14 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
 
         # customers...
         if to_status == 'pending':
+            # import pdb; pdb.set_trace()
             if request.user.has_perm('core.can_checkout_opened_orders'):
                 try:
                     order.checkout()
                 except ValidationError as e:
                     self.msgs.append(e.message)
             else:
-                return HttpResponseForbidden()
+                raise PermissionDenied()
 
         # managers...
         elif to_status == 'dispatched':
@@ -112,7 +113,7 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
                 order.save()
                 return redirect('product')
             else:
-                return HttpResponseForbidden()
+                raise PermissionDenied()
 
         return redirect('index')
 
@@ -190,11 +191,12 @@ class ProductView(LoginRequiredMixin, generic.ListView):
         return context
 
 
-class _ProductCrudMixin(LoginRequiredMixin):
+class _ProductCrudMixin(PermissionRequiredMixin, LoginRequiredMixin):
     model = Product
     fields = ['name', 'price', 'is_active']
     template_name = 'core/managing.html'
     success_url = reverse_lazy('product')
+    permission_required = 'core.can_manage_product'
 
 
 class ProductCreateView(_ProductCrudMixin, generic.edit.CreateView):

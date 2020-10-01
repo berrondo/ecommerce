@@ -1,13 +1,10 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from ..views import in_group
-
 
 class TestCustomerAndOrder:
     def test_a_customer_is_created_in_the_correct_group_with_an_opened_order(self, a_customer, order_1):
         assert a_customer.groups.first().name == 'customers'
-        assert in_group(a_customer, 'customers')
 
         assert order_1.status == 'OPENED'
         assert order_1.get_status_display() == 'Aberto'

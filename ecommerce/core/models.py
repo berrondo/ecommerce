@@ -9,11 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 class NoModel(models.Model):
     class Meta:
-        managed = False  # No database table creation or deletion  \
-        # operations will be performed for this model.
-
-        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
-
+        managed = False
+        default_permissions = ()
         permissions = (
             ('can_checkout_opened_orders', 'Can checkout opened orders'),
             ('can_dispatch_pending_orders', 'Can dispatch pending orders'),
@@ -115,9 +112,6 @@ class Order(models.Model):
         self._must_be_an_non_empty_order()
 
         self.status = self.OrderStatus.TO_BE_SHIPPED
-        # for i in self.content.all():
-        #     self.content.filter(order=self, in_cart=i).price = i.price
-        #     self.content(i).save()
         self.save()
         return self
 

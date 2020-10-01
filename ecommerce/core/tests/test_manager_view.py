@@ -2,13 +2,11 @@ import pytest
 from django.urls import reverse as r
 
 from ..models import Product, Order
-from ..views import in_group
 
 
 class TestManagerCreationAndLogIn:
     def test_a_manager_is_created_in_the_correct_group(self, a_manager):
         assert a_manager.groups.first().name == 'managers'
-        assert in_group(a_manager, 'managers')
 
     def test_manager_is_logged_in(self, client, a_manager):
         client.login(username='ann', password='54321')

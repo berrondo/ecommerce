@@ -1,5 +1,3 @@
-import pytest
-
 from django.urls import reverse as r
 
 from ..models import Product
@@ -47,10 +45,10 @@ class TestCustomerChangingOrderItems:
         assert add_item.status_code == 200
         assert a_customer.orders.first().items.first().quantity == 1
 
-        an_item = {
-                "todo": 'excluir',
+        data = {
+             "todo": 'excluir',
         }
-        response = client.post(r('order-item-update', args=[1, 1]), data=an_item, follow=True)
+        response = client.post(r('order-item-update', args=[1, 1]), data, follow=True)
         assert response.status_code == 200
         assert not a_customer.orders.first().items.exists()
 
@@ -58,11 +56,11 @@ class TestCustomerChangingOrderItems:
         assert add_item.status_code == 200
         assert a_customer.orders.first().items.first().quantity == 1
 
-        an_item = {
-                "quantity": 7,
-                "todo": 'alterar',
+        data = {
+            "quantity": 7,
+            "todo": 'alterar',
         }
-        response = client.post(r('order-item-update', args=[1, 1]), data=an_item, follow=True)
+        response = client.post(r('order-item-update', args=[1, 1]), data, follow=True)
         assert response.status_code == 200
         assert a_customer.orders.first().items.first().quantity == 7
 
@@ -70,11 +68,11 @@ class TestCustomerChangingOrderItems:
         assert add_item.status_code == 200
         assert a_customer.orders.first().items.first().quantity == 1
 
-        an_item = {
-                "quantity": 0,
-                "todo": 'alterar',
+        data = {
+            "quantity": 0,
+            "todo": 'alterar',
         }
-        response = client.post(r('order-item-update', args=[1, 1]), data=an_item, follow=True)
+        response = client.post(r('order-item-update', args=[1, 1]), data, follow=True)
         assert response.status_code == 200
         assert not a_customer.orders.first().items.exists()
 
@@ -112,4 +110,21 @@ class TestCustomerCantDo:
         response = client_w_customer.post(r('product-delete', args=[1]), follow=True)
         assert 'bob' not in str(response.content)
         assert Product.objects.exists()
+        assert response.status_code == 403
+
+    def test_a_customer_can_not_mess_with_another_customer_order(self, client, a_customer, add_item, another_customer):
+        assert a_customer.orders.first().items.first().product.name == 'Abacate'
+
+        client.logout()
+        client.login(username=another_customer.username, password='90')
+
+        response = client.get(r('index'))
+        assert response.status_code == 200
+        assert 'joe' in str(response.content)
+
+        data = {
+            "quantity": 7,
+            "todo": 'alterar',
+        }
+        response = client.post(r('order-item-update', args=[1, 1]), data, follow=True)
         assert response.status_code == 403

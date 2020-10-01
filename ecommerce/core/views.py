@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError, PermissionDenied
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
@@ -22,7 +22,7 @@ def get_user(request):
     return user
 
 
-def get_opened_order(request):
+def get_user_opened_order(request):
     opened_order = Order.objects.none()
     if user := get_user(request):
         if hasattr(user, 'orders'):
@@ -32,13 +32,8 @@ def get_opened_order(request):
     return opened_order
 
 
-def in_group(user, group_name):
-    if hasattr(user, 'groups'):
-        return user.groups.filter(name=group_name).exists()
-
-
 def get_customer_context(request):
-    opened_order = get_opened_order(request)
+    opened_order = get_user_opened_order(request)
     context = {
         'products': Product.objects.filter(is_active=True).all(),
         'orders': [opened_order],
@@ -50,7 +45,7 @@ def get_customer_context(request):
 
 def index(request):
     if user := get_user(request):
-        if in_group(user, 'managers'):
+        if user.has_perm('can_manage_product'):
             return redirect('product')
 
     return render(request, 'core/index.html', get_customer_context(request))
@@ -63,10 +58,10 @@ class OrderView(LoginRequiredMixin, generic.ListView):
         queryset = super().get_queryset()
 
         if user := get_user(self.request):
-            if in_group(user, 'customers'):
+            if user.has_perm('can_checkout_opened_orders'):
                 queryset = self.model.objects.filter(customer=user).all()
 
-            elif not in_group(user, 'managers'):
+            elif not user.has_perm('can_manage_product'):
                 queryset = self.model.objects.none()
 
         return queryset
@@ -97,7 +92,6 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
 
         # customers...
         if to_status == 'pending':
-            # import pdb; pdb.set_trace()
             if request.user.has_perm('core.can_checkout_opened_orders'):
                 try:
                     order.checkout()
@@ -152,16 +146,19 @@ class OrderItemUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
+            user = get_user(request)
             order = get_object_or_404(self.model, pk=kwargs.get('order_pk', 0))
+
+            if order not in user.orders.all():
+                raise PermissionDenied()
+
             item = order.items.get(id=kwargs.get('item_pk', 0))
 
             quantity = int(data.get('quantity', 0))
 
-            # customers...
             if not quantity:
                 item.delete()
 
-            # customers...
             else:
                 item.quantity = quantity
                 item.save()

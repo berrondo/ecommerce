@@ -25,6 +25,11 @@ def client_w_customer(client, a_customer):
     return client
 
 
+@pytest.fixture
+def another_customer():
+    return create_user(username='joe', password='90')
+
+
 @pytest.fixture()
 def add_item(client_w_customer, an_order):
     response = client_w_customer.post(r('order-update', args=[1]), data=an_order, follow=True)

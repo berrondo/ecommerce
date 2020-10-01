@@ -15,9 +15,13 @@
         <p>Voc&ecirc; presisa fazer <a href="{% url 'login' %}">login</a></p>
         {% endif %}
 
-        {% for msg in msgs %}
-        <p>{{ msg }}</p>
-        {% endfor %}
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     <hr />
     {% endblock %}
     

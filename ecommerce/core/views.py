@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponseRedirect
@@ -38,7 +39,7 @@ def get_customer_context(request):
         'products': Product.objects.filter(is_active=True).all(),
         'orders': [opened_order],
         'opened_order': opened_order,
-        'msgs': [],
+        'messages': messages.get_messages(request),
     }
     return context
 
@@ -51,7 +52,8 @@ def index(request):
     return render(request, 'core/index.html', get_customer_context(request))
 
 
-class OrderView(LoginRequiredMixin, generic.ListView):
+
+class OrderListView(LoginRequiredMixin, generic.ListView):
     model = Order
 
     def get_queryset(self):
@@ -67,28 +69,34 @@ class OrderView(LoginRequiredMixin, generic.ListView):
         return queryset
 
 
-class _OrderCrudMixin(LoginRequiredMixin):
+class _OrderCrudMixin(
+        LoginRequiredMixin,
+        UserPassesTestMixin,
+        generic.base.ContextMixin,
+        generic.View):
+
     model = Order
     template_name = 'core/index.html'
-    msgs = []
-
-    # def __init__(self, **kwargs):
-    #     super().__init__(kwargs)
-    #     self.msgs = []
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(
             get_customer_context(self.request)
         )
-        context['msgs'] = self.msgs
         return context
+
+    def test_func(self):
+        user = get_user(self.request)
+        return self.get_object() in user.orders.all()
 
 
 class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
+    def test_func(self):
+        return True
+
     def post(self, request, *args, **kwargs):
         to_status = kwargs.get('to_status')
-        order = get_object_or_404(self.model, pk=kwargs.get('pk'))
+        order = self.get_object()
 
         # customers...
         if to_status == 'pending':
@@ -96,7 +104,7 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
                 try:
                     order.checkout()
                 except ValidationError as e:
-                    self.msgs.append(e.message)
+                    messages.error(request, e.message)
             else:
                 raise PermissionDenied()
 
@@ -115,17 +123,16 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
 class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
-            order = get_object_or_404(self.model, pk=kwargs.get('pk', 0))
+
             quantity = int(data.get('quantity', 0))
 
-            # customers...
             product_id = int(data.get('product_id', 0))
             product = Product.objects.get(id=product_id)
 
             try:
-                order.add_item(product, quantity)
+                self.get_object().add_item(product, quantity)
             except ValidationError as e:
-                self.msgs.append(e.message)
+                messages.error(request, e.message)
 
         return redirect('index')
 
@@ -183,7 +190,7 @@ class ProductView(LoginRequiredMixin, generic.ListView):
             'form': ProductForm(),
             'products': products,
             'orders': Order.objects.filter(status=Order.OrderStatus.TO_BE_SHIPPED).all(),
-            # 'msgs': msgs or [],
+            'messages': messages.get_messages(self.request),
         })
         return context
 
@@ -221,7 +228,6 @@ class OrderViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
 
 # class OrderItemViewSet(viewsets.ModelViewSet):
 #     queryset = OrderItem.objects.all()

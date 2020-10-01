@@ -23,20 +23,18 @@ def get_user(request):
     return user
 
 
-def get_user_opened_order(request):
+def get_customer_context(request):
     opened_order = Order.objects.none()
     if user := get_user(request):
         if hasattr(user, 'orders'):
             opened_order, _ = Order.objects.get_or_create(
                 customer=user,
                 status=Order.OrderStatus.OPENED)
-    return opened_order
 
+    products = Product.objects.filter(is_active=True).all()
 
-def get_customer_context(request):
-    opened_order = get_user_opened_order(request)
     context = {
-        'products': Product.objects.filter(is_active=True).all(),
+        'products': products,
         'orders': [opened_order],
         'opened_order': opened_order,
         'messages': messages.get_messages(request),
@@ -46,11 +44,10 @@ def get_customer_context(request):
 
 def index(request):
     if user := get_user(request):
-        if user.has_perm('can_manage_product'):
+        if user.has_perm('core.can_manage_product'):
             return redirect('product')
 
     return render(request, 'core/index.html', get_customer_context(request))
-
 
 
 class OrderListView(LoginRequiredMixin, generic.ListView):
@@ -60,10 +57,10 @@ class OrderListView(LoginRequiredMixin, generic.ListView):
         queryset = super().get_queryset()
 
         if user := get_user(self.request):
-            if user.has_perm('can_checkout_opened_orders'):
+            if user.has_perm('core.can_checkout_opened_orders'):
                 queryset = self.model.objects.filter(customer=user).all()
 
-            elif not user.has_perm('can_manage_product'):
+            elif not user.has_perm('core.can_manage_product'):
                 queryset = self.model.objects.none()
 
         return queryset
@@ -86,6 +83,7 @@ class _OrderCrudMixin(
         return context
 
     def test_func(self):
+        """the customer must see and change only his own orders"""
         user = get_user(self.request)
         return self.get_object() in user.orders.all()
 
@@ -127,7 +125,7 @@ class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
             quantity = int(data.get('quantity', 0))
 
             product_id = int(data.get('product_id', 0))
-            product = Product.objects.get(id=product_id)
+            product = get_object_or_404(Product, id=product_id)
 
             try:
                 self.get_object().add_item(product, quantity)
@@ -177,7 +175,15 @@ class OrderItemDeleteView(LoginRequiredMixin, generic.edit.DeleteView):
     model = Product
 
 
-class ProductView(LoginRequiredMixin, generic.ListView):
+class _ProductCrudMixin(PermissionRequiredMixin, LoginRequiredMixin):
+    model = Product
+    fields = ['name', 'price', 'is_active']
+    template_name = 'core/managing.html'
+    success_url = reverse_lazy('product')
+    permission_required = 'core.can_manage_product'
+
+
+class ProductListView(_ProductCrudMixin, generic.ListView):
     model = Product
     template_name = 'core/managing.html'
 
@@ -193,14 +199,6 @@ class ProductView(LoginRequiredMixin, generic.ListView):
             'messages': messages.get_messages(self.request),
         })
         return context
-
-
-class _ProductCrudMixin(PermissionRequiredMixin, LoginRequiredMixin):
-    model = Product
-    fields = ['name', 'price', 'is_active']
-    template_name = 'core/managing.html'
-    success_url = reverse_lazy('product')
-    permission_required = 'core.can_manage_product'
 
 
 class ProductCreateView(_ProductCrudMixin, generic.edit.CreateView):
@@ -228,6 +226,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
 
 # class OrderItemViewSet(viewsets.ModelViewSet):
 #     queryset = OrderItem.objects.all()

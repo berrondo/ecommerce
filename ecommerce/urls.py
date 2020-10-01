@@ -30,7 +30,7 @@ urlpatterns = [
          views.OrderItemDeleteView.as_view(), name='order-item-delete'),
 
     path('products/',
-         views.ProductView.as_view(), name='product'),
+         views.ProductListView.as_view(), name='product'),
     path('products/add',
          views.ProductCreateView.as_view(), name='product-create'),
     path('products/<int:pk>',

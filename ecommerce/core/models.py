@@ -30,10 +30,6 @@ def set_group_permissions(group):
     if group.name == 'managers':
         group.permissions.add(
             Permission.objects.get(codename='can_manage_product'),
-            # Permission.objects.get(codename='view_product'),
-            # Permission.objects.get(codename='add_product'),
-            # Permission.objects.get(codename='change_product'),
-            # Permission.objects.get(codename='delete_product'),
             # 'can_view_orders',
             Permission.objects.get(codename='can_dispatch_pending_orders'),
         )
@@ -67,7 +63,6 @@ class Order(models.Model):
         OPENED = 'OPENED', _('Aberto')
         TO_BE_SHIPPED = 'TO_BE_SHIPPED', _('Pendente')
         SHIPPED = 'SHIPPED', _('Despachado')
-        DELIVERED = 'DELIVERED', _('Entregue')
 
     status = models.CharField(
             max_length=15,
@@ -78,7 +73,6 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'pedido'
         verbose_name_plural = 'pedidos'
-        ordering = ['-id']
 
     def __str__(self):
         return f'Pedido {self.id}'
@@ -115,6 +109,14 @@ class Order(models.Model):
         self.save()
         return self
 
+    def dispatch(self):
+        self._must_be_a_pending_order()
+        self._must_be_an_non_empty_order()
+
+        self.status = self.OrderStatus.SHIPPED
+        self.save()
+        return self
+
     def delete(self):
         self._must_be_an_empty_order()
         self._must_be_an_opened_order()
@@ -131,6 +133,10 @@ class Order(models.Model):
     def _must_be_an_opened_order(self):
         if self.status != Order.OrderStatus.OPENED:
             raise ValidationError("Should not alter a not opened order!")
+
+    def _must_be_a_pending_order(self):
+        if self.status != Order.OrderStatus.TO_BE_SHIPPED:
+            raise ValidationError("Should not dispatch a non pending order!")
 
 
 class Product(models.Model):

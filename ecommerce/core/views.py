@@ -63,7 +63,8 @@ class OrderListView(LoginRequiredMixin, generic.ListView):
             elif not user.has_perm('core.can_manage_product'):
                 queryset = self.model.objects.none()
 
-        return queryset
+        # newest first
+        return queryset.order_by('-pk')
 
 
 class _OrderCrudMixin(
@@ -109,9 +110,11 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
         # managers...
         elif to_status == 'dispatched':
             if request.user.has_perm('core.can_dispatch_pending_orders'):
-                order.status = self.model.OrderStatus.SHIPPED
-                order.save()
-                return redirect('product')
+                try:
+                    order.dispatch()
+                    return redirect('product')
+                except ValidationError as e:
+                    messages.error(request, e.message)
             else:
                 raise PermissionDenied()
 

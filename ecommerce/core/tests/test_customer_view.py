@@ -1,6 +1,6 @@
 from django.urls import reverse as r
 
-from ..models import Product
+from ..models import Product, Order
 
 
 class TestCustomerLogIn:
@@ -37,7 +37,7 @@ class TestCustomerAddingToOrder:
         # again...
         response = client.post(r('order-update', args=[1]), data=an_order, follow=True)
         assert response.status_code == 200
-        # assert "Seu carrinho já tem" in str(response.content)
+        assert "Seu carrinho j" in str(response.content)
 
 
 class TestCustomerChangingOrderItems:
@@ -78,9 +78,21 @@ class TestCustomerChangingOrderItems:
 
 
 class TestCustomerCheckingOutOrder:
-    def test_a_customer_can_checkout_his_opened_order(self, client, a_customer, add_item):
-        response = client.post(r('order-status-update', args=[1, 'pending']), follow=True)
+    def test_a_customer_can_checkout_his_opened_order(self, client_w_customer, a_customer, add_item):
+        this_order = a_customer.orders.first()
+
+        assert add_item.status_code == 200
+        assert this_order.status == Order.OrderStatus.OPENED
+        assert 'vazio' not in str(add_item.content)
+
+        response = client_w_customer.post(r('order-status-update', args=[this_order.pk, 'pending']), follow=True)
         assert 'vazio' in str(response.content)
+        assert Order.objects.get(pk=this_order.pk).status == Order.OrderStatus.TO_BE_SHIPPED
+
+        response = client_w_customer.post(r('order-status-update', args=[this_order.pk, 'pending']), follow=True)
+        assert 'vazio' in str(response.content)
+        assert 'Should not alter a not opened order!' in str(response.content)
+        assert Order.objects.get(pk=this_order.pk).status == Order.OrderStatus.TO_BE_SHIPPED
 
 
 class TestCustomerCantDo:

@@ -29,17 +29,17 @@
 <p>produtos em estoque:</p>
     <ol>
     {% for product in products %}
-    <form method="post" action="{% url 'product-update' product.pk %}">
-        {% csrf_token %}
         <li>
+        <form method="post" action="{% url 'product-update' product.pk %}" style="display:inline-block;">
+            {% csrf_token %}
             {{ product.form_ }}
             <input type="submit" name="todo" value="alterar">
+        </form>
+        <form method="post" action="{% url 'product-delete' product.pk %}" style="display:inline-block;">
+            {% csrf_token %}
+            ou <input type="submit" name="todo" value="excluir">
+        </form>
         </li>
-    </form>
-    <form method="post" action="{% url 'product-delete' product.pk %}">
-        {% csrf_token %}
-        ou <input type="submit" name="todo" value="excluir">
-    </form>
     {% endfor %}
     </ol>
 {% endblock %}

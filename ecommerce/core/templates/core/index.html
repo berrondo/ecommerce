@@ -7,35 +7,34 @@
 <p>seu carrinho <a href="{% url 'order' %}">(ver suas compras anteriores)</a></p>
 <ol>
     {% for item in opened_order.items.all %}
-    <form method="post" action="{% url 'order-item-update' opened_order.pk item.pk %}">
-        {% csrf_token %}
         <li>
-            <input type="text" name="name" value="{{ item.product.name }}" disabled>
-            $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>
-            x <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
-            = <input type="text" name="sub_total" value="{{ item.sub_total }}" style="width:50px" disabled>
-            <input type="submit" name="todo" value="alterar">
+            <form method="post" action="{% url 'order-item-update' opened_order.pk item.pk %}" style="display:inline-block;">
+                {% csrf_token %}
+                <input type="text" name="name" value="{{ item.product.name }}" disabled>
+                $ <input type="text" name="price" value="{{ item.product.price }}" style="width:50px" disabled>
+                x <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:50px">
+                = <input type="text" name="sub_total" value="{{ item.sub_total }}" style="width:50px" disabled>
+                <input type="submit" name="todo" value="alterar">
+            </form>
+            <form method="post" action="{% url 'order-item-update' opened_order.pk item.pk %}" style="display:inline-block;">
+                {% csrf_token %}
+                ou <input type="submit" name="todo" value="excluir">
+            </form>
         </li>
-    </form>
-    <form method="post" action="{% url 'order-item-update' opened_order.pk item.pk %}">
-            {% csrf_token %}
-            ou <input type="submit" name="todo" value="excluir">
-    </form>
     {% empty %}
         <p>...está vazio...</p>
     {% endfor %}
 </ol>
-
 {% if opened_order.items.count %}
   <p>
-    <form method="post" action="{% url 'order-delete' opened_order.pk %}">
+    <form method="post" action="{% url 'order-delete' opened_order.pk %}" style="display:inline-block;">
         {% csrf_token %}
         valor total da compra: <strong>$ {{ opened_order.total }}</strong>
         <input type="submit" name="todo" value="esvaziar carrinho">
     </form>
-    <form method="post" action="{% url 'order-status-update' opened_order.pk 'pending' %}">
+    <form method="post" action="{% url 'order-status-update' opened_order.pk 'pending' %}" style="display:inline-block;">
         {% csrf_token %}
-        <input type="submit" name="todo" value="fechar pedido">
+         ou <input type="submit" name="todo" value="fechar pedido">
     </form>
   </p>
 {% endif %}

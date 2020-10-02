@@ -158,8 +158,8 @@ class OrderItem(models.Model):
 
     class Meta:
         unique_together = ('order', 'product')
-        verbose_name = 'inclusão'
-        verbose_name_plural = 'inclusões'
+        verbose_name = 'item'
+        verbose_name_plural = 'itens'
 
     def __str__(self):
-        return f'Inclusão em {self.order} de {self.quantity} {self.product}'
+        return f'Item de {self.order}: {self.quantity} {self.product}'

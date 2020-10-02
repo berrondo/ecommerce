@@ -7,30 +7,15 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class NoModel(models.Model):
-    class Meta:
-        managed = False
-        default_permissions = ()
-        permissions = (
-            ('can_checkout_opened_orders', 'Can checkout opened orders'),
-            ('can_dispatch_pending_orders', 'Can dispatch pending orders'),
-        )
-
-
 def set_group_permissions(group):
     if group.name == 'customers':
         group.permissions.add(
-            #     'can_view_products',
-            #     'can_view_his_orders',
-            #     'can_change_his_opened_orders',
-            #     'can_delete_his_opened_orders',
             Permission.objects.get(codename='can_checkout_opened_orders'),
         )
 
     if group.name == 'managers':
         group.permissions.add(
             Permission.objects.get(codename='can_manage_product'),
-            # 'can_view_orders',
             Permission.objects.get(codename='can_dispatch_pending_orders'),
         )
     return group
@@ -73,6 +58,10 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'pedido'
         verbose_name_plural = 'pedidos'
+        permissions = (
+            ('can_checkout_opened_orders', 'Can checkout opened orders'),
+            ('can_dispatch_pending_orders', 'Can dispatch pending orders'),
+        )
 
     def __str__(self):
         return f'Pedido {self.id}'

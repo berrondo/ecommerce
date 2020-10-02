@@ -149,19 +149,13 @@ class OrderDeleteView(_OrderCrudMixin, generic.DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-class OrderItemUpdateView(LoginRequiredMixin, generic.UpdateView):
+class OrderItemUpdateView(_OrderCrudMixin, generic.UpdateView):
     model = Order
 
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
-            user = get_user(request)
-            order = get_object_or_404(self.model, pk=kwargs.get('order_pk', 0))
-
-            if order not in user.orders.all():
-                raise PermissionDenied()
-
+            order = self.get_object()
             item = order.items.get(id=kwargs.get('item_pk', 0))
-
             quantity = int(data.get('quantity', 0))
 
             if not quantity:
@@ -174,7 +168,7 @@ class OrderItemUpdateView(LoginRequiredMixin, generic.UpdateView):
         return redirect('index')
 
 
-class OrderItemDeleteView(LoginRequiredMixin, generic.edit.DeleteView):
+class OrderItemDeleteView(_OrderCrudMixin, generic.edit.DeleteView):
     model = Product
 
 

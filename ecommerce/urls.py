@@ -21,8 +21,10 @@ urlpatterns = [
     path('orders/<int:pk>/delete',
          views.OrderDeleteView.as_view(), name='order-delete'),
 
-    path('orders/<int:pk>/<slug:to_status>/',
-         views.OrderStatusView.as_view(), name='order-status-update'),
+    path('orders/<int:pk>/checkout/',
+         views.OrderStatusToPendingView.as_view(), name='order-checkout'),
+    path('orders/<int:pk>/dispatch/',
+         views.OrderStatusToDispatchedView.as_view(), name='order-dispatch'),
 
     path('orders/<int:pk>/items/<int:item_pk>',
          views.OrderItemUpdateView.as_view(), name='order-item-update'),

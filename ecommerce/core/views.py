@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
@@ -17,8 +17,7 @@ def get_user(request):
     user = request.user
     if user.is_authenticated:
         username = request.user.username
-        my_user = User.objects.filter(username=username).first()
-        if my_user:
+        if my_user := User.objects.filter(username=username).first():
             user = my_user
     return user
 
@@ -89,34 +88,31 @@ class _OrderCrudMixin(
         return self.get_object() in user.orders.all()
 
 
-class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
-    def test_func(self):
-        return True
+class OrderStatusToPendingView(_OrderCrudMixin, generic.UpdateView):
+    # def test_func(self):
+    #     """customer can checkout his own opened order with his own perm"""
+    #     return super().test_func() and self.request.user.has_perm('core.can_checkout_opened_orders')
 
     def post(self, request, *args, **kwargs):
-        to_status = kwargs.get('to_status')
-        order = self.get_object()
+        try:
+            self.get_object().checkout()
+        except ValidationError as e:
+            messages.error(request, e.message)
 
-        # customers...
-        if to_status == 'pending':
-            if request.user.has_perm('core.can_checkout_opened_orders'):
-                try:
-                    order.checkout()
-                except ValidationError as e:
-                    messages.error(request, e.message)
-            else:
-                raise PermissionDenied()
+        return redirect('index')
 
-        # managers...
-        elif to_status == 'dispatched':
-            if request.user.has_perm('core.can_dispatch_pending_orders'):
-                try:
-                    order.dispatch()
-                    return redirect('product')
-                except ValidationError as e:
-                    messages.error(request, e.message)
-            else:
-                raise PermissionDenied()
+
+class OrderStatusToDispatchedView(_OrderCrudMixin, generic.UpdateView):
+    def test_func(self):
+        """manager can dispatch any user's pending order"""
+        return self.request.user.has_perm('core.can_dispatch_pending_orders')
+
+    def post(self, request, *args, **kwargs):
+        try:
+            self.get_object().dispatch()
+            return redirect('product')
+        except ValidationError as e:
+            messages.error(request, e.message)
 
         return redirect('index')
 
@@ -124,9 +120,7 @@ class OrderStatusView(_OrderCrudMixin, generic.UpdateView):
 class OrderUpdateView(_OrderCrudMixin, generic.UpdateView):
     def post(self, request, *args, **kwargs):
         if data := request.POST.dict():
-
             quantity = int(data.get('quantity', 0))
-
             product_id = int(data.get('product_id', 0))
             product = get_object_or_404(Product, id=product_id)
 

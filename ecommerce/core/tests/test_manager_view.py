@@ -57,7 +57,7 @@ class TestManagerDispatchingOrder:
         assert 'bob' in str(response.content)
         assert 'Abacate' in str(response.content)
 
-        response = client.post(r('order-status-update', args=[1, 'pending']), follow=True)
+        response = client.post(r('order-checkout', args=[1]), follow=True)
         assert response.status_code == 200
         assert 'vazio' in str(response.content)
         assert Order.objects.get(pk=1).status == Order.OrderStatus.TO_BE_SHIPPED
@@ -65,7 +65,7 @@ class TestManagerDispatchingOrder:
         client.logout()
         assert client.login(username=a_manager.username, password='54321')
 
-        response = client.post(r('order-status-update', args=[1, 'dispatched']), follow=True)
+        response = client.post(r('order-dispatch', args=[1]), follow=True)
         assert response.status_code == 200
         assert Order.objects.get(pk=1).status == Order.OrderStatus.SHIPPED
         assert 'Pendente' not in str(response.content)
@@ -80,6 +80,6 @@ class TestManagerDispatchingOrder:
         client.logout()
         assert client.login(username=a_manager.username, password='54321')
 
-        response = client.post(r('order-status-update', args=[1, 'pending']), follow=True)
+        response = client.post(r('order-checkout', args=[1]), follow=True)
         assert response.status_code == 403
         assert Order.objects.get(pk=1).status == Order.OrderStatus.OPENED

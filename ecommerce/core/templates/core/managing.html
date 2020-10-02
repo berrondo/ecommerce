@@ -4,7 +4,7 @@
 <p>pedidos para despachar: (<a href="{% url 'order' %}">ver todos os pedidos...</a>)</p>
     <ul>
     {% for order in orders %}
-      <li><form method="post" action="{% url 'order-status-update' order.pk 'dispatched' %}">
+      <li><form method="post" action="{% url 'order-dispatch' order.pk %}">
           {% csrf_token %}
           Pedido [{{ order.pk }}] de {{ order.customer.username|title }}.
           total: <strong>$ {{ order.total }}</strong> :: {{ order.get_status_display }} ---

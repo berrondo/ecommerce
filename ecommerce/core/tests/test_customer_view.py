@@ -85,11 +85,11 @@ class TestCustomerCheckingOutOrder:
         assert this_order.status == Order.OrderStatus.OPENED
         assert 'vazio' not in str(add_item.content)
 
-        response = client_w_customer.post(r('order-status-update', args=[this_order.pk, 'pending']), follow=True)
+        response = client_w_customer.post(r('order-checkout', args=[this_order.pk]), follow=True)
         assert 'vazio' in str(response.content)
         assert Order.objects.get(pk=this_order.pk).status == Order.OrderStatus.TO_BE_SHIPPED
 
-        response = client_w_customer.post(r('order-status-update', args=[this_order.pk, 'pending']), follow=True)
+        response = client_w_customer.post(r('order-checkout', args=[this_order.pk]), follow=True)
         assert 'vazio' in str(response.content)
         assert 'Should not alter a not opened order!' in str(response.content)
         assert Order.objects.get(pk=this_order.pk).status == Order.OrderStatus.TO_BE_SHIPPED
@@ -139,4 +139,17 @@ class TestCustomerCantDo:
             "todo": 'alterar',
         }
         response = client.post(r('order-item-update', args=[1, 1]), data, follow=True)
+        assert response.status_code == 403
+
+    def test_a_customer_can_not_checkout_another_customer_order(self, client, a_customer, add_item, another_customer):
+        assert a_customer.orders.first().items.first().product.name == 'Abacate'
+
+        client.logout()
+        client.login(username=another_customer.username, password='90')
+
+        response = client.get(r('index'))
+        assert response.status_code == 200
+        assert 'joe' in str(response.content)
+
+        response = client.post(r('order-checkout', args=[1]), follow=True)
         assert response.status_code == 403

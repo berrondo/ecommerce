@@ -1,9 +1,8 @@
-image:
-  file: .gitpod.Dockerfile
+image: gitpod/workspace-full
 
 ports:
   - port: 8080
-    # onOpen: open-browser
+    onOpen: open-preview
 
 tasks:
   # manage is a [scripts] at Pipfile
@@ -11,7 +10,8 @@ tasks:
       pipenv install &&
       cp contrib/env_sample .env &&
       pipenv run manage migrate &&
-      pipenv run manage createsuperuser --email a@a.com --no-input
+      pipenv run manage createsuperuser --email a@a.com --no-input &&
+      pipenv run manage loaddata
     command: 
       pipenv run manage runserver 0.0.0.0:8080
     

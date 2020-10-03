@@ -9,7 +9,7 @@
 3. Ative o virtualenv.
 4. Instale as dependências
 5. Configure a instância com o .env
-6. Execute os testes.
+6. Execute os testes com pytest.
 
 ```console
 git clone git@github.com:berrondo/ecommerce.git ecommerce
@@ -18,5 +18,5 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
 cp contrib/env_sample .env
-python manage.py test
+pytest
 ```

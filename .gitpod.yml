@@ -11,7 +11,7 @@ tasks:
       cp contrib/env_sample .env &&
       pipenv run manage migrate &&
       pipenv run manage createsuperuser --email a@a.com --no-input &&
-      pipenv run manage loaddata
+      pipenv run manage loaddata 'store.json'
     command: 
       pipenv run manage runserver 0.0.0.0:8080
     

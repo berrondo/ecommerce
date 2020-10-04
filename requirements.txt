@@ -1,5 +1,6 @@
-django
-python-decouple
-dj-database-url
-django-extensions
-djangorestframework
+django==3.1.1
+psycopg2-binary==2.8.6
+python-decouple==3.3
+dj-database-url==0.5.0
+django-extensions==3.0.9
+djangorestframework==3.11.1

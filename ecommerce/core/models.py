@@ -162,4 +162,4 @@ class OrderItem(models.Model):
         verbose_name_plural = 'itens'
 
     def __str__(self):
-        return f'Item de {self.order}: {self.quantity} {self.product}'
+        return f'Item {self.pk} do {self.order}: {self.quantity} {self.product}'

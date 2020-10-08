@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse as r
 
-from ..models import create_user, Product
+from ..models import create_user, Product, OrderItem
 
 
 @pytest.fixture(autouse=True)
@@ -31,9 +31,14 @@ def another_customer():
 
 
 @pytest.fixture()
-def add_item(client_w_customer, an_order):
-    response = client_w_customer.post(r('order-update', args=[1]), data=an_order, follow=True)
+def add_item(client_w_customer, an_order, order_1):
+    response = client_w_customer.post(r('order-update', args=[order_1.pk]), data=an_order, follow=True)
     return response
+
+
+@pytest.fixture()
+def order_item_1(order_1):
+    return OrderItem.objects.get(order=order_1)
 
 
 @pytest.fixture()
@@ -49,7 +54,7 @@ def register_product(client_w_manager):
         price=0.01,
         is_active=True,
     )
-    response = client_w_manager.post(r('product-create'), data, follow=True)
+    response = client_w_manager.post(r('product-create'), data=data, follow=True)
     return response
 
 
@@ -63,7 +68,6 @@ def an_order(a_customer, avocado):
     return {
             "product_id": avocado.id,
             "quantity": 1,
-            "todo": "comprar",
     }
 
 
